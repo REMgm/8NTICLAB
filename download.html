@@ -47,7 +47,6 @@
         .btn:hover {
             opacity: 0.9;
         }
-        .support { margin-top: 30px; color: #64748b; }
         .copied {
             color: #22c55e;
             font-size: 14px;
@@ -61,15 +60,10 @@
         <p>Your OpenClaw QuickStart is ready for download.</p>
         
         <h3>Run this command in your terminal:</h3>
-        <div class="code" onclick="copyCommand()" id="cmd">curl -fsSL https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh | bash</div>
+        <div class="code" onclick="copyCommand()" id="cmd">curl -fsSL https://raw.githubusercontent.com/REMgm/8NTICLAB/main/quickstart-setup.sh | bash</div>
         <div id="copy-msg"></div>
         
         <button class="btn" onclick="downloadScript()">📥 Download Script</button>
-        
-        <div class="support">
-            <p>Need help? Email <a href="mailto:support@8ntic.dev" style="color: #a855f7;">support@8ntic.dev</a></p>
-            <p>30-day money-back guarantee</p>
-        </div>
     </div>
 
     <script>
@@ -82,7 +76,7 @@
         }
         
         function downloadScript() {
-            const url = 'https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh';
+            const url = 'https://raw.githubusercontent.com/REMgm/8NTICLAB/main/quickstart-setup.sh';
             fetch(url)
                 .then(function(response) { return response.blob(); })
                 .then(function(blob) {

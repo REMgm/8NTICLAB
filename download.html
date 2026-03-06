@@ -26,6 +26,10 @@
             font-size: 14px;
             margin: 20px 0;
             word-break: break-all;
+            cursor: pointer;
+        }
+        .code:hover {
+            background: #252542;
         }
         .btn {
             display: inline-block;
@@ -36,8 +40,19 @@
             text-decoration: none;
             font-weight: bold;
             margin-top: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            opacity: 0.9;
         }
         .support { margin-top: 30px; color: #64748b; }
+        .copied {
+            color: #22c55e;
+            font-size: 14px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -46,14 +61,42 @@
         <p>Your OpenClaw QuickStart is ready for download.</p>
         
         <h3>Run this command in your terminal:</h3>
-        <div class="code">curl -fsSL https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh | bash</div>
+        <div class="code" onclick="copyCommand()" id="cmd">curl -fsSL https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh | bash</div>
+        <div id="copy-msg"></div>
         
-        <a href="https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh" class="btn" download>Download Script</a>
+        <button class="btn" onclick="downloadScript()">📥 Download Script</button>
         
         <div class="support">
             <p>Need help? Email <a href="mailto:support@8ntic.dev" style="color: #a855f7;">support@8ntic.dev</a></p>
             <p>30-day money-back guarantee</p>
         </div>
     </div>
+
+    <script>
+        function copyCommand() {
+            const cmd = document.getElementById('cmd').innerText;
+            navigator.clipboard.writeText(cmd).then(function() {
+                document.getElementById('copy-msg').innerHTML = '<p class="copied">✓ Copied to clipboard!</p>';
+                setTimeout(function() { document.getElementById('copy-msg').innerHTML = ''; }, 2000);
+            });
+        }
+        
+        function downloadScript() {
+            const url = 'https://raw.githubusercontent.com/REMgm/8NTIC/main/shared/tools/quickstart-setup.sh';
+            fetch(url)
+                .then(function(response) { return response.blob(); })
+                .then(function(blob) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'quickstart-setup.sh';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                })
+                .catch(function() {
+                    window.open(url, '_blank');
+                });
+        }
+    </script>
 </body>
 </html>

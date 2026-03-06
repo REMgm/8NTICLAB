@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw QuickStart — Get Running in 15 Minutes</title>
+    <meta name="description" content="Skip the configuration hell. One command installs OpenClaw automatically. $10, works on Mac & Linux.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        h1 span {
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .trust-badge {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+        .trust-badge span {
+            margin: 0 10px;
+        }
+        
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(168, 85, 247, 0.4);
+        }
+        
+        /* Section */
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Problem list */
+        .problem-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        .problem-list li {
+            color: #cbd5e1;
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .problem-list li:before {
+            content: "✗";
+            color: #ef4444;
+            position: absolute;
+            left: 0;
+        }
+        
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .feature {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .feature h3 {
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .feature p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        
+        /* Steps */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin: 0 auto 15px;
+        }
+        .step h4 {
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        .step p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        /* Whats Included */
+        .included {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .included-item {
+            color: #cbd5e1;
+            padding: 10px 0;
+        }
+        .included-item:before {
+            content: "✓";
+            color: #22c55e;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* FAQ */
+        .faq-item {
+            margin-bottom: 25px;
+        }
+        .faq-item h4 {
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .faq-item p {
+            color: #94a3b8;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #64748b;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer a {
+            color: #a855f7;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .section { padding: 25px; }
+            .steps { flex-direction: column; }
+            .included { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Hero -->
+        <div class="hero">
+            <div class="badge">🚀 24-Hour Launch Special</div>
+            <h1>Get Your AI Agent <span>Running in 15 Minutes</span></h1>
+            <p class="subtitle">Skip the configuration hell. One command, zero headaches, your OpenClaw agent is live.</p>
+            <div class="trust-badge">
+                <span>✅ Mac & Linux</span>
+                <span>⏱️ 15 Minutes</span>
+                <span>💬 Email Support</span>
+            </div>
+            <a href="https://buy.stripe.com/REPLACE_WITH_YOUR_LINK" class="cta-button">Get QuickStart — $10</a>
+        </div>
+        
+        <!-- Problem -->
+        <div class="section">
+            <h2>Tired of Spending Hours on Setup?</h2>
+            <p>Installing OpenClaw sounds simple. But then you're stuck with:</p>
+            <ul class="problem-list">
+                <li>Docker configuration errors</li>
+                <li>GitHub token confusion</li>
+                <li>SSH key generation mistakes</li>
+                <li>Hours of troubleshooting</li>
+            </ul>
+            <p><strong>The real cost:</strong> 2+ hours of your time (worth way more than $10)</p>
+        </div>
+        
+        <!-- Solution -->
+        <div class="section">
+            <h2>QuickStart Does It All For You</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">⌨️</div>
+                    <h3>One Command</h3>
+                    <p>Paste a single curl command, walk away</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Auto-Configures</h3>
+                    <p>Docker, GitHub, SSH keys handled automatically</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Agent Running</h3>
+                    <p>Hello World mission working in 15 minutes</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- How It Works -->
+        <div class="section">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Buy</h4>
+                    <p>$10 — Instant access</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Paste</h4>
+                    <p>One command in terminal</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Wait</h4>
+                    <p>15 min automated setup</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Go</h4>
+                    <p>Your agent is live</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Whats Included -->
+        <div class="section">
+            <h2>What's Included</h2>
+            <div class="included">
+                <div class="included-item">Automated setup script</div>
+                <div class="included-item">Mac & Linux support</div>
+                <div class="included-item">Docker auto-install</div>
+                <div class="included-item">GitHub integration guide</div>
+                <div class="included-item">Configuration generator</div>
+                <div class="included-item">30-day email support</div>
+            </div>
+        </div>
+        
+        <!-- FAQ -->
+        <div class="section">
+            <h2>FAQ</h2>
+            <div class="faq-item">
+                <h4>What if it doesn't work?</h4>
+                <p>30-day money-back guarantee. No questions asked.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Do I need technical knowledge?</h4>
+                <p>Basic terminal comfort. If you can copy-paste, you can do this.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What's the difference from free setup?</h4>
+                <p>We automate 2+ hours of configuration into 15 minutes.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can I get a refund?</h4>
+                <p>Yes, within 30 days. Just email support.</p>
+            </div>
+        </div>
+        
+        <!-- CTA -->
+        <div class="hero" style="padding: 40px 0;">
+            <h2 style="margin-bottom: 20px;">Ready to Skip the Setup Hell?</h2>
+            <a href="https://buy.stripe.com/REPLACE_WITH_YOUR_LINK" class="cta-button">Get OpenClaw QuickStart — $10</a>
+            <p style="margin-top: 20px; color: #64748b;">One-time payment. Instant access. 30-day guarantee.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Made with 🦞 by <a href="https://github.com/REMgm/8NTIC">8NTIC</a> — Autonomous Agent Collective</p>
+            <p style="margin-top: 10px;">Support: <a href="mailto:support@8ntic.dev">support@8ntic.dev</a></p>
+        </div>
+        
+    </div>
+</body>
+</html>

@@ -18,6 +18,16 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         h1 { color: #a855f7; }
+        .code {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            word-break: break-all;
+            text-align: left;
+        }
         .btn {
             display: inline-block;
             background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
@@ -39,10 +49,13 @@
 <body>
     <div class="container">
         <h1>🎉 Thank You for Your Purchase!</h1>
-        <p>Your OpenClaw QuickStart is ready for download.</p>
-        <p>The script includes installation instructions inside.</p>
+        <p>Your OpenClaw QuickStart is ready.</p>
         
+        <h3>Step 1: Download the script</h3>
         <button class="btn" onclick="downloadScript()">📥 Download quickstart-setup.sh</button>
+        
+        <h3 style="margin-top: 30px;">Step 2: Run in terminal</h3>
+        <div class="code">chmod +x quickstart-setup.sh<br>./quickstart-setup.sh</div>
     </div>
 
     <script>

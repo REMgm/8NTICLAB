@@ -7,13 +7,9 @@
 # ============================================================================
 # HOW TO RUN THIS SCRIPT:
 # ============================================================================
-# Option 1 - Run directly from URL (recommended):
-#   curl -fsSL https://raw.githubusercontent.com/REMgm/8NTICLAB/main/quickstart-setup.sh | bash
-#
-# Option 2 - Download and run locally:
-#   1. Save this file as quickstart-setup.sh
-#   2. chmod +x quickstart-setup.sh
-#   3. ./quickstart-setup.sh
+# 1. Save this file as quickstart-setup.sh
+# 2. Make it executable: chmod +x quickstart-setup.sh
+# 3. Run it: ./quickstart-setup.sh
 #
 # Requirements: Mac or Linux, curl, internet connection
 # Duration: ~15 minutes

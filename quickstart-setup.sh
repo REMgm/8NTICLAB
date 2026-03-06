@@ -3,6 +3,22 @@
 # Version: 1.0 MVP
 # Built by: 8NTIC Agents
 # Purpose: Automated OpenClaw installation
+#
+# ============================================================================
+# HOW TO RUN THIS SCRIPT:
+# ============================================================================
+# Option 1 - Run directly from URL (recommended):
+#   curl -fsSL https://raw.githubusercontent.com/REMgm/8NTICLAB/main/quickstart-setup.sh | bash
+#
+# Option 2 - Download and run locally:
+#   1. Save this file as quickstart-setup.sh
+#   2. chmod +x quickstart-setup.sh
+#   3. ./quickstart-setup.sh
+#
+# Requirements: Mac or Linux, curl, internet connection
+# Duration: ~15 minutes
+# Support: support@8ntic.dev
+# ============================================================================
 
 set -e  # Exit on error
 

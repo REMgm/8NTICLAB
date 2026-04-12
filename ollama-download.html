@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ollama Launch - Download</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+            background: #0a0a12;
+            color: #fff;
+        }
+        .container {
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h1 { color: #22c55e; }
+        .code {
+            background: #121228;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            word-break: break-all;
+            text-align: left;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thank You for Your Purchase!</h1>
+        <p>Your Ollama Launch script is ready.</p>
+
+        <h3>Step 1: Download the script</h3>
+        <button class="btn" onclick="downloadScript()">Download ollama-setup.sh</button>
+
+        <h3 style="margin-top: 30px;">Step 2: Run in terminal</h3>
+        <div class="code">chmod +x ollama-setup.sh<br>./ollama-setup.sh</div>
+
+        <p style="color: #64748b; margin-top: 30px;">Support: <a href="mailto:support@8ntic.dev" style="color: #22c55e;">support@8ntic.dev</a></p>
+    </div>
+
+    <script>
+        function downloadScript() {
+            var url = 'https://raw.githubusercontent.com/REMgm/8NTICLAB/main/ollama-setup.sh';
+            fetch(url)
+                .then(function(response) { return response.blob(); })
+                .then(function(blob) {
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'ollama-setup.sh';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                })
+                .catch(function() {
+                    window.open(url, '_blank');
+                });
+        }
+    </script>
+</body>
+</html>

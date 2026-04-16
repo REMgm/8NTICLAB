@@ -157,7 +157,7 @@ if command -v npm &> /dev/null; then
     echo -e "${GREEN}✓ OpenClaw installed${NC}"
 else
     echo -e "${YELLOW}! npm not found, installing Node.js...${NC}"
-    
+
     if [[ "$OS" == "macos" ]]; then
         if command -v brew &> /dev/null; then
             brew install node
@@ -170,9 +170,21 @@ else
         curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
         sudo apt-get install -y nodejs
     fi
-    
+
     npm install -g openclaw
     echo -e "${GREEN}✓ OpenClaw installed${NC}"
+fi
+
+# Install Claude Code CLI (Anthropic's official CLI, useful alongside OpenClaw)
+echo ""
+echo -e "${YELLOW}▶ Installing Claude Code CLI...${NC}"
+
+if command -v claude &> /dev/null; then
+    echo -e "${GREEN}✓ Claude Code CLI already installed${NC}"
+    claude --version || true
+else
+    npm install -g @anthropic-ai/claude-code
+    echo -e "${GREEN}✓ Claude Code CLI installed${NC}"
 fi
 
 # Create first mission
@@ -234,6 +246,7 @@ echo "🚀 Next steps:"
 echo "   1. cd $WORKSPACE_DIR/workspace"
 echo "   2. ./hello-world.sh"
 echo "   3. Run: openclaw"
+echo "   4. Or launch Claude Code CLI: claude"
 echo ""
 echo "💬 Support: support@8ntic.dev"
 echo "📚 Docs: https://docs.openclaw.ai"

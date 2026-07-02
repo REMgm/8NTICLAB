@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* Design tokens (spec §8): dark pitch-green-black base, electric lime
+   signal, warm floodlight white. Team colors are injected per card as
+   inline CSS vars (--team-a / --team-b). */
+@theme {
+  --color-pitch-950: #0a1410;
+  --color-pitch-900: #0d1a14;
+  --color-pitch-800: #12241b;
+  --color-pitch-700: #1a3325;
+  --color-pitch-600: #24462f;
+  --color-signal: #c8f542;
+  --color-flood: #f5f2e8;
+  --color-flood-dim: #b8b4a6;
+
+  --font-display: "Archivo", "Archivo Expanded", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+body {
+  background-color: var(--color-pitch-950);
+  color: var(--color-flood);
+  font-family: var(--font-body);
+  /* floodlight haze: two soft radial pools over the pitch black */
+  background-image:
+    radial-gradient(1100px 520px at 85% -10%, rgba(200, 245, 66, 0.07), transparent 60%),
+    radial-gradient(900px 480px at 8% 0%, rgba(245, 242, 232, 0.05), transparent 55%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-pitch-950);
+}
+
+/* Scores, odds, timers: tabular mono everywhere (spec §8 type). */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Glassmorphism ONLY on overlay layers (ticker, modals) — never on
+   content cards (spec §8). */
+.glass {
+  background: rgba(10, 20, 16, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(245, 242, 232, 0.08);
+}
+
+/* Bracket rail: horizontal snap scroll on mobile (spec §9). */
+.bracket-rail {
+  scroll-snap-type: x mandatory;
+}
+.bracket-rail > * {
+  scroll-snap-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

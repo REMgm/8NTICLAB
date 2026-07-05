@@ -18,6 +18,68 @@
 
 set -e  # Exit on error
 
+# ============================================================================
+# AUTOMODE: Run fully unattended with no prompts
+# ============================================================================
+# Usage:  ./quickstart-setup.sh --auto --token YOUR_GITHUB_TOKEN
+# Or:     GITHUB_TOKEN=xxx ./quickstart-setup.sh --auto
+# Or:     OPENCLAW_AUTOMODE=1 GITHUB_TOKEN=xxx ./quickstart-setup.sh
+#
+# Optional flags:
+#   --auto              Enable automode (skip all prompts)
+#   --token <token>     GitHub Personal Access Token
+#   --model <model>     AI model to use (default: kimi-coding/k2p5)
+#   --workspace <path>  Custom workspace directory
+# ============================================================================
+
+AUTOMODE="${OPENCLAW_AUTOMODE:-0}"
+CUSTOM_MODEL=""
+CUSTOM_WORKSPACE=""
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --auto)
+            AUTOMODE=1
+            shift
+            ;;
+        --token)
+            GITHUB_TOKEN="$2"
+            shift 2
+            ;;
+        --model)
+            CUSTOM_MODEL="$2"
+            shift 2
+            ;;
+        --workspace)
+            CUSTOM_WORKSPACE="$2"
+            shift 2
+            ;;
+        --help|-h)
+            echo "OpenClaw QuickStart Setup"
+            echo ""
+            echo "Usage: ./quickstart-setup.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --auto              Run in automode (no prompts)"
+            echo "  --token <token>     GitHub Personal Access Token"
+            echo "  --model <model>     AI model (default: kimi-coding/k2p5)"
+            echo "  --workspace <path>  Custom workspace directory"
+            echo "  --help              Show this help message"
+            echo ""
+            echo "Automode examples:"
+            echo "  ./quickstart-setup.sh --auto --token ghp_xxx"
+            echo "  GITHUB_TOKEN=ghp_xxx ./quickstart-setup.sh --auto"
+            echo "  OPENCLAW_AUTOMODE=1 GITHUB_TOKEN=ghp_xxx ./quickstart-setup.sh"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1 (use --help for usage)"
+            exit 1
+            ;;
+    esac
+done
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -34,6 +96,10 @@ echo -e "${BLUE}╔════════════════════�
 echo -e "${BLUE}║     🦞 OpenClaw QuickStart - Automated Setup          ║${NC}"
 echo -e "${BLUE}║     Get running in 15 minutes                          ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+
+if [[ "$AUTOMODE" == "1" ]]; then
+    echo -e "${GREEN}⚡ AUTOMODE ENABLED — running fully unattended${NC}"
+fi
 echo ""
 echo "Log file: $LOG_FILE"
 echo ""
@@ -79,6 +145,9 @@ else
     if [[ "$OS" == "macos" ]]; then
         echo -e "${YELLOW}Please install Docker Desktop from: https://docs.docker.com/desktop/install/mac-install/${NC}"
         echo -e "${YELLOW}After installation, re-run this script.${NC}"
+        if [[ "$AUTOMODE" == "1" ]]; then
+            echo -e "${RED}✗ Automode cannot install Docker Desktop on macOS. Install it manually and re-run.${NC}"
+        fi
         exit 1
     else
         # Linux Docker install
@@ -95,7 +164,7 @@ fi
 
 # Create workspace
 echo -e "${YELLOW}▶ Setting up workspace...${NC}"
-WORKSPACE_DIR="$HOME/.openclaw"
+WORKSPACE_DIR="${CUSTOM_WORKSPACE:-$HOME/.openclaw}"
 mkdir -p "$WORKSPACE_DIR"
 echo -e "${GREEN}✓ Workspace: $WORKSPACE_DIR${NC}"
 
@@ -107,24 +176,37 @@ echo "  1. GitHub account"
 echo "  2. Personal Access Token (classic) with 'repo' scope"
 echo ""
 
-read -p "Do you have a GitHub Personal Access Token? (y/n): " has_token
+if [[ "$AUTOMODE" == "1" ]]; then
+    # Automode: token must be provided via --token flag or GITHUB_TOKEN env var
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        echo -e "${RED}✗ Automode requires a GitHub token via --token or GITHUB_TOKEN env var${NC}"
+        exit 1
+    fi
+    has_token="y"
+else
+    read -p "Do you have a GitHub Personal Access Token? (y/n): " has_token
+fi
 
 if [[ "$has_token" == "y" || "$has_token" == "Y" ]]; then
-    read -p "Enter your GitHub token (input hidden): " -s GITHUB_TOKEN
-    echo ""
-    
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        read -p "Enter your GitHub token (input hidden): " -s GITHUB_TOKEN
+        echo ""
+    fi
+
     # Test token
     echo "Testing GitHub token..."
     if curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user | grep -q "login"; then
         echo -e "${GREEN}✓ GitHub token valid${NC}"
-        
+
         # Save to config
+        MODEL="${CUSTOM_MODEL:-kimi-coding/k2p5}"
         CONFIG_FILE="$WORKSPACE_DIR/config.json"
         cat > "$CONFIG_FILE" << EOF
 {
   "githubToken": "$GITHUB_TOKEN",
   "workspace": "$WORKSPACE_DIR/workspace",
-  "model": "kimi-coding/k2p5",
+  "model": "$MODEL",
+  "automode": $AUTOMODE,
   "installedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF

@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-09-19T10:06:02.517Z",
+  "checkedAt": "2026-09-19T14:37:42.149Z",
   "environment": "local production build — not deployed staging",
   "result": "PASS",
-  "businessId": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c",
-  "confirmationId": "17f09ef4-b7bc-4c27-bdc9-8287d44d3b7e",
+  "businessId": "d7733e68-47b1-4b51-b537-c906f852aa3e",
+  "confirmationId": "548815fd-a4ee-427f-b90a-ff132e1d8a54",
   "checks": [
     "home renders",
     "free start",
@@ -19,29 +19,29 @@
   "events": [
     {
       "name": "signup_free",
-      "timestamp": "2026-09-19T10:06:02.448Z",
-      "business_id": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c"
+      "timestamp": "2026-09-19T14:37:42.078Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
     },
     {
       "name": "ingest_completed",
-      "timestamp": "2026-09-19T10:06:02.462Z",
-      "business_id": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c"
+      "timestamp": "2026-09-19T14:37:42.090Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
     },
     {
       "name": "node_ready",
-      "timestamp": "2026-09-19T10:06:02.471Z",
-      "business_id": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c"
+      "timestamp": "2026-09-19T14:37:42.101Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
     },
     {
       "name": "callable_succeeded",
-      "timestamp": "2026-09-19T10:06:02.500Z",
-      "business_id": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c",
-      "receipt_id": "17f09ef4-b7bc-4c27-bdc9-8287d44d3b7e"
+      "timestamp": "2026-09-19T14:37:42.134Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e",
+      "receipt_id": "548815fd-a4ee-427f-b90a-ff132e1d8a54"
     },
     {
       "name": "callable_failed",
-      "timestamp": "2026-09-19T10:06:02.510Z",
-      "business_id": "9c0d8051-84b8-4d4b-8035-f1f8ce6a3d4c",
+      "timestamp": "2026-09-19T14:37:42.142Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e",
       "reason": "NO_MATCH"
     }
   ]

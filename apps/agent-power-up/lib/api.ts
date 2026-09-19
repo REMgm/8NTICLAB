@@ -30,6 +30,8 @@ export async function handle(req: Request, route: string, id?: string): Promise<
         if (route === 'health')
             return ok({ service: 'Agent Power Up', status: 'ready', storage: storageMode(), authentication: 'provisional owner session + bearer caller keys' });
         if (route === 'free-start') {
+            try { const existing = await owner(req); return ok({businessId:existing.id,resumed:true}); } catch(error) { if (!(error instanceof ApiError) || error.status !== 401) throw error; }
+
             const key = token();
             const now = new Date().toISOString();
             const b: Business = { id: randomUUID(), createdAt: now, activationId: randomUUID(), sessionId: randomUUID(), activationTimezone: 'UTC', ownerHash: hash(key), callerHash: null, surface: { ...empty }, published: false, events: [], receipts: [], quotes: [], refresh: { nextDueAt: new Date(Date.now() + 365 * 86400000).toISOString(), lastCheckedAt: null, status: 'scheduled_stub' } };

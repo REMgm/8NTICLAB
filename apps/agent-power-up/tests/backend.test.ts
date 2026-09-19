@@ -12,6 +12,10 @@ test('complete authenticated ingest → publish → external FIND → real quote
     const payload = await start.json();
     const id = payload.data.businessId;
     const cookie = start.headers.get('set-cookie')!.split(';')[0];
+    const repeated = await handle(request('/api/free-start', 'POST', {}, cookie), 'free-start');
+    assert.equal(repeated.status, 200);
+    assert.equal((await repeated.json()).data.businessId, id);
+
     const foreign = await handle(new Request(origin + '/api/free-start', { method: 'POST', headers: { origin: 'https://evil.example' } }), 'free-start');
     assert.equal(foreign.status, 403);
     assert.equal((await handle(request('/api/workspace'), 'workspace')).status, 401);

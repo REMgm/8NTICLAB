@@ -1,0 +1,12 @@
+export type PowerStatus = 'live' | 'queued' | 'blocked (partner)';
+export type ActionName = 'get_business' | 'find' | 'request_quote' | 'search_availability' | 'create_booking';
+export type EventName = 'signup_free' | 'ingest_completed' | 'node_ready' | 'callable_succeeded' | 'callable_failed';
+export type Surface = {name:string;description:string;category:string;website:string;phone:string;email:string;address:string;timezone:string;hours:string;services:string[];source:string;confidence:'high'|'medium'|'low';importedAt:string|null};
+export type MetricEvent = {id:string;name:EventName;timestamp:string;business_id:string;activation_id:string;session_id:string;action?:ActionName;environment:'production'|'sandbox';reason?:string;receipt_id?:string;duration_ms?:number};
+export type Receipt = {id:string;action:ActionName;createdAt:string;environment:'production'|'sandbox';status:string;result:Record<string,unknown>};
+export type Quote = {id:string;name:string;email:string;request:string;createdAt:string;status:'received'};
+export type BookingIntent = {idempotencyKey:string;payloadHash:string;status:'pending'|'succeeded'|'unknown'|'failed';leaseUntil:number;providerAttempted?:boolean;bookingId?:string;response?:Receipt;error?:string};
+export type Business = {bookingIntents?:Record<string,BookingIntent>;id:string;createdAt:string;activationId:string;sessionId:string;activationTimezone:string;ownerHash:string;callerHash:string|null;surface:Surface;published:boolean;events:MetricEvent[];receipts:Receipt[];quotes:Quote[];refresh:{nextDueAt:string;lastCheckedAt:string|null;status:'scheduled_stub'|'due'};square?:{locationId:string;serviceVariationId:string;teamMemberId:string;verified:boolean}};
+export type PowerUp = {id:string;name:string;action:string;status:PowerStatus;description:string;environment?:string;reason?:string};
+export type Workspace = {business:Omit<Business,'ownerHash'|'callerHash'>;powerUps:PowerUp[];nodeUrl:string;schemaUrl:string;apiUrl:string;storage:'local'|'vercel-blob';hasCallerKey:boolean;funnel:{started:boolean;ingested:boolean;nodeReady:boolean;callableSucceeded:boolean;timeToCallableMs:number|null}};
+export type ApiEnvelope<T> = {ok:true;data:T}|{ok:false;error:{code:string;message:string}};

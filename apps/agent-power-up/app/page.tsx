@@ -1,0 +1,1 @@
+export default function Page(){return <main><h1>Agent Power Up</h1><p>Platform review build. The Power-Up workspace is supplied by the stacked UI pull request.</p><a href="/api/health">API health</a></main>}

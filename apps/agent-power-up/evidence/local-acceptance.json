@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-09-19T14:37:42.149Z",
+  "environment": "local production build — not deployed staging",
+  "result": "PASS",
+  "businessId": "d7733e68-47b1-4b51-b537-c906f852aa3e",
+  "confirmationId": "548815fd-a4ee-427f-b90a-ff132e1d8a54",
+  "checks": [
+    "home renders",
+    "free start",
+    "persisted details ingest",
+    "published node schema",
+    "unauthorized caller rejected",
+    "authenticated external FIND",
+    "failure reported honestly",
+    "five required server events",
+    "ChatGPT queued",
+    "private owner hash not exposed"
+  ],
+  "events": [
+    {
+      "name": "signup_free",
+      "timestamp": "2026-09-19T14:37:42.078Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
+    },
+    {
+      "name": "ingest_completed",
+      "timestamp": "2026-09-19T14:37:42.090Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
+    },
+    {
+      "name": "node_ready",
+      "timestamp": "2026-09-19T14:37:42.101Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e"
+    },
+    {
+      "name": "callable_succeeded",
+      "timestamp": "2026-09-19T14:37:42.134Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e",
+      "receipt_id": "548815fd-a4ee-427f-b90a-ff132e1d8a54"
+    },
+    {
+      "name": "callable_failed",
+      "timestamp": "2026-09-19T14:37:42.142Z",
+      "business_id": "d7733e68-47b1-4b51-b537-c906f852aa3e",
+      "reason": "NO_MATCH"
+    }
+  ]
+}

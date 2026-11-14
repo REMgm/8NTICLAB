@@ -1,0 +1,92 @@
+{
+  "results": [
+    {
+      "name": "Initial silent state and default frequencies",
+      "status": "PASS"
+    },
+    {
+      "name": "Preset alignment and 10-minute phase variant",
+      "status": "PASS"
+    },
+    {
+      "name": "Volume, beat, carrier and URL input clamps",
+      "status": "PASS"
+    },
+    {
+      "name": "Noise cap and shared custom session roundtrip",
+      "status": "PASS"
+    },
+    {
+      "name": "Keyboard and text-field shortcut isolation",
+      "status": "PASS"
+    },
+    {
+      "name": "Safe local preset save, reload, delete and Golden tempo",
+      "status": "PASS"
+    },
+    {
+      "name": "Start, live controls, stereo test, fade Stop, restart",
+      "status": "PASS"
+    },
+    {
+      "name": "Responsive widths and reduced motion",
+      "status": "PASS"
+    },
+    {
+      "name": "Portable HTML download contains complete app and current session",
+      "status": "PASS"
+    },
+    {
+      "name": "Measured WAV spectra, routing, PCM headers and isochronic periods",
+      "status": "PASS",
+      "detail": {
+        "rate": 44100,
+        "bits": 16,
+        "channels": 2,
+        "duration": 60,
+        "calmLeft108": 0.18692040112459987,
+        "calmLeft112": 1.16316239703164e-7,
+        "calmRight112": 0.1869201112447734,
+        "calmRight108": 2.1066412651666942e-7,
+        "goldenLeft220": 0.182903551827164,
+        "goldenRight230": 0.1828894453144036,
+        "chord277": 0.021635043650478834,
+        "chord330": 0.021936465794065794,
+        "centeredLeft215": 0.1869206224775656,
+        "centeredRight225": 0.18692174559758523,
+        "monauralChannelDiff": 0,
+        "isoPeriodMs": 100
+      }
+    },
+    {
+      "name": "Complete default 14-minute WAV and 48kHz 24-bit export",
+      "status": "PASS",
+      "detail": {
+        "default": {
+          "bytes": 148176044,
+          "rate": 44100,
+          "bits": 16,
+          "channels": 2,
+          "frames": 37044000,
+          "lastSecondPeak": 0.000030517578125
+        },
+        "highResolution": {
+          "bytes": 17280044,
+          "rate": 48000,
+          "bits": 24,
+          "channels": 2,
+          "frames": 2880000
+        }
+      }
+    },
+    {
+      "name": "No uncaught application errors",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "physicalPhoneTest": false,
+  "tested_source_commit": "645e618c346e43b0a3a17853985e9d38540bc27d",
+  "runtime": "Chromium via the provisioned Higgsfield Playwright runtime",
+  "test_date": "2026-11-14"
+}

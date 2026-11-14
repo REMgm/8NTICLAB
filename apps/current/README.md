@@ -8,9 +8,11 @@ The ready-to-use deliverable is **`index.html`**: a self-contained page with its
 
 ## Release status
 
-The application and static hosting configuration are prepared. **Production deployment is pending.** The intended source destination is the isolated **`apps/current`** directory in the existing public **`REMgm/8NTICLAB`** product repository. Its existing root files and other applications are outside this change.
+The application is published on a feature branch in the existing public **`REMgm/8NTICLAB`** product repository, isolated under **`apps/current`**. The repository's existing Git integration has already reported a successful Vercel preview deployment. Its existing root files and other applications are outside this change.
 
-Use the publishing steps below, then record the verified production URL and commit. Credentials and consent links do not belong in this repository.
+**Current's production release and public route verification are still pending.** After the reviewed commit is fast-forwarded to `main`, the existing Vercel integration deploys the repository. The expected Current URL is **`https://8-nticlab.vercel.app/apps/current/`**; this is a release target, not yet a verified production result. No new repository, separate Vercel project, or account authorization is required for this publishing path.
+
+See [ACCEPTANCE.md](ACCEPTANCE.md) for completed checks and remaining validation. Use the publishing steps below, then record the verified production URL and commit.
 
 ## Use it
 
@@ -33,6 +35,8 @@ No installation or development server is needed for the portable file. A hosted 
 Carrier controls span **60–600 Hz**. The beat spans **0.5–40 Hz** in binaural mode and **0.5–100 Hz** in the other modes. A low carrier is raised internally when needed to keep the lowest component at 40 Hz. The actual sounding frequencies are displayed and exported in session links.
 
 The volume starts at **25%** of full-scale gain and is capped at **60%**. This is a software gain limit, not a guarantee about headphone sound pressure: the device, amplifier, and headphones still determine the physical listening level. Frequency and gain changes are smoothed; mode changes crossfade.
+
+The native compressor is followed by a fixed **0.40 output gain** to counter its standard automatic makeup gain. This conservative attenuation applies to playback, channel checks, and WAV rendering. With the configured −12 dB threshold, the compensation keeps the compressor/output stage's calculated maximum net gain below unity. See the [W3C Web Audio makeup-gain definition](https://www.w3.org/TR/webaudio-1.0/#computing-the-makeup-gain) and the implementation note in `src/engine.js`; reassess the bound if compressor settings change.
 
 ### Built-in sessions
 
@@ -94,7 +98,10 @@ Current is for personal listening and makes no medical, therapeutic, or guarante
 | `vercel.json` | Static hosting configuration and response headers |
 | `tools/build.py` | Optional standard-library assembly of the readable sources into `index.html` |
 | `tests/state.test.cjs` | Dependency-free state and serialization checks |
+| `tests/audio-schedule.test.cjs` | Mocked graph, scheduling, lifecycle, and compensated-output checks |
+| `tests/browser-check.cjs` | Real Chromium interaction, responsive, portable-file, and WAV-render checks using an already available Playwright installation |
 | `tests/test_ui.py` | Browser integration checks for an environment with Playwright and Chromium already available |
+| `ACCEPTANCE.md` | Verification evidence, release status, and explicit limits |
 
 **Only run the assembler after editing `src/` or the embedded artwork:**
 
@@ -108,6 +115,7 @@ The state checks use Node's built-in runtime:
 
 ```bash
 node tests/state.test.cjs
+node tests/audio-schedule.test.cjs
 ```
 
 For local hosted inspection, a standard static server is sufficient:
@@ -125,24 +133,28 @@ As of this prepared release on **14 November 2026**:
 | Check | Status and scope |
 | --- | --- |
 | State and serialization suite | **36 checks passed**: defaults, frequency math, mode and volume caps, phase policies, noise scaling, URL round trips, and storage resilience |
-| Audio scheduling checks | **Passed using mocked audio nodes/parameters**; validates scheduling logic, not acoustic output |
-| Browser integration and responsive rendering | **Pending**; a test script is provided, but its presence is not a passing result |
-| Real browser audio rendering and WAV output | **Pending** |
+| Audio scheduling checks | **Passed using mocked audio nodes/parameters**, including the compensated output path, rapid mode changes, timing, and lifecycle; these are not acoustic measurements |
+| Real Chromium suite | **All 12 checks passed, with no uncaught application errors**: controls, persistence, layout, transport, portable files, measured audio, and full WAV renders |
+| Responsive rendering | **Passed** at 320, 390, 768, and 1440 px without horizontal overflow; desktop/mobile screenshots reviewed |
+| Portable offline copy | **Passed**: complete self-contained download, current-session restoration, playback, and a second download retaining changed settings |
+| Final measured audio and WAV export | **Passed after output attenuation**: correct channel frequencies/routing, 10 Hz isochronic period, complete 14-minute 44.1 kHz/16-bit export, and one-minute 48 kHz/24-bit export |
 | Physical headphones, iPhone/iPad Safari, background interruption, and wake lock | **Pending device validation** |
-| GitHub publication, Vercel deployment, and public HTTPS offline cache | **Pending access prerequisites and post-publication verification** |
+| GitHub and Vercel preview | **Published feature branch; Vercel reports successful deployment**. Preview is authentication-protected, so public app delivery is not claimed from that status alone |
+| Current production route and HTTPS offline cache | **Pending main-branch release and post-publication verification** |
 
 Update this table only from completed results. A desktop Chromium viewport test does not establish physical Safari or headphone behavior.
 
+The browser-tested implementation is commit **`645e618c346e43b0a3a17853985e9d38540bc27d`**; subsequent cover/canonical-URL metadata changes do not alter playback behavior. Detailed measured values, file sizes, and remaining production checks are recorded in [ACCEPTANCE.md](ACCEPTANCE.md).
+
 ## Publish to GitHub and Vercel
 
-1. Use the existing public GitHub repository **`REMgm/8NTICLAB`** and add Current under **`apps/current`**. Read the latest `main` head before writing; base the new tree on that existing tree and use the expected branch-head SHA when updating the ref. Preserve all existing root files and unrelated app directories.
-2. Publish the complete reviewed Current project, including the already assembled `index.html`, `sw.js`, assets, source, and documentation. Do not publish credentials, browser traces, authentication state, or private briefing exports.
-3. Authorize the existing Vercel connection for the intended team through its supported consent flow, then inspect the team and project before release.
-4. Create a separate Vercel project named **`current-audio`**, linked to `REMgm/8NTICLAB`. Use **Framework Preset: Other**, **no build command**, **no install command**, **Root Directory: `apps/current`**, and **Output Directory: `.`** relative to that app directory. The app's `vercel.json` supplies the static settings. No environment variables or server functions are needed. Do not retarget an existing Vercel project that serves the repository root or another application.
-5. Deploy the reviewed commit to production. Verify that the deployment reaches READY, the production URL serves the correct version, playback starts only after a gesture, and a second visit works offline after the service worker has installed.
-6. Record the actual production URL, repository URL, commit, and completed verification results in this README.
+1. Keep Current isolated under **`apps/current`** in **`REMgm/8NTICLAB`**. Publish the reviewed sources, regenerated `index.html`, `sw.js`, assets, and documentation on the feature branch. Do not publish credentials, browser traces, authentication state, or private briefing exports.
+2. Complete the acceptance checks. Inspect the latest feature and `main` heads and the additive diff. If `main` has not diverged, fast-forward it to the exact reviewed commit using the expected previous SHA. Preserve all existing root files and unrelated applications; do not force-overwrite concurrent changes.
+3. Let the repository's **existing Git-to-Vercel integration** deploy that main-branch commit. Check its Vercel commit status through completion. No new project, credentials, build command, package installation, or environment variables are required.
+4. Verify the public Current page at **`https://8-nticlab.vercel.app/apps/current/`**. Confirm that it serves the released HTML, the root site's content is unchanged, audio requires a gesture, session links resolve under the app path, and the scoped service worker supports a subsequent offline visit.
+5. Record the actual production verification and released commit in this README and `ACCEPTANCE.md`.
 
-This source location is public. No custom domain or unrelated project settings need to be changed for this release. If a dedicated private repository is preferred later, copy this app directory to a new private `REMgm/current-audio` repository and set that new Vercel project's Root Directory to its repository root; the app itself needs no code changes.
+The repository root remains the existing static site. Current's files use app-relative paths so the player can live in its subdirectory. The app's nested `vercel.json` is available for a future standalone deployment; the existing root integration is the publishing path for this release, and no new response-header configuration is claimed without checking the deployed responses.
 
 ## Design and asset provenance
 

@@ -1,0 +1,9 @@
+src/
+tests/
+tools/
+test-results/
+assets/design-direction.webp
+README.md
+ACCEPTANCE.md
+DESIGN.md
+.git/

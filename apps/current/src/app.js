@@ -98,7 +98,7 @@
     const preset=S.BUILT_INS[slug] || storage.presets.find(p=>p.slug===slug);
     if(!preset){toast('That preset is not on this device.');return;}
     phasesEdited=customPhases(S.normalize(preset));
-    setState(S.normalize(preset),{notifyTiming:true});
+    setState(S.normalize(preset),{notifyTiming:true});writeURL();
     announce(preset.name+' loaded.',true);
   }
   function assign(id,value) {
@@ -249,7 +249,7 @@
     const preset=Object.assign({},state,{slug,name,builtIn:false,preset:slug,createdAt:existing?.createdAt||new Date().toISOString()});
     if(existing)storage.presets=storage.presets.map(p=>p.slug===slug?preset:p);else storage.presets.push(preset);
     state=Object.assign({},state,{preset:slug});
-    const saved=persist();queueSave();$('save-dialog').close();render();if(saved)toast('Preset saved on this device');else toast('Could not save presets in this browser. Kept for this visit only.',true);
+    const saved=persist();queueSave();writeURL();$('save-dialog').close();render();if(saved)toast('Preset saved on this device');else toast('Could not save presets in this browser. Kept for this visit only.',true);
   }
   function exportSize(){const min=Math.max(1,Math.min(90,Number($('export-minutes').value)||10));const rate=Number($('export-rate').value),depth=Number($('export-depth').value);const mb=min*60*rate*2*(depth/8)/1e6;$('export-size').textContent=shortTime(min*60)+' · Stereo · About '+Math.round(mb)+' MB';}
   function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}

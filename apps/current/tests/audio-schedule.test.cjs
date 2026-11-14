@@ -28,12 +28,33 @@ class Context{
 const window={AudioContext:Context};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/engine.js'),'utf8'),{window,Float32Array,Math,Number,Object,Array,Map,WeakMap,Set,Promise,Error,setTimeout,clearTimeout,setInterval,clearInterval,Blob,ArrayBuffer,DataView});
 const base={mode:'binaural',carrier:110,beat:4,align:'center',volume:.25,minutes:14,settle:120,fade:120,pulseOn:true,pulse:60,tempo:'steady',pulseDepth:.1,accent:false,chord:false,noise:[],noiseGain:{},preset:'calm-current'};
 (async()=>{
- let e=new window.CurrentAudio.Engine();assert.equal(e.context,null);await e.start(base);assert.equal(e.getSnapshot().left,108);assert.equal(e.getSnapshot().right,112);assert.equal(e.graph.duration,840);assert.equal(e.graph.session.settle,120);assert.equal(e.graph.end,840.02);
+
+ const assertCompensated = limiter => {
+  assert.equal(limiter.type,'compressor');
+  assert.equal(limiter.threshold.value,-12);
+  assert.equal(limiter.connections.length,1);
+  const output=limiter.connections[0].n;
+  assert.equal(output.type,'gain');
+  assert.equal(output.gain.value,.4);
+  assert.equal(output.connections[0].n.type,'destination');
+  // W3C: a monotone compression curve is identity up to the threshold;
+  // automatic makeup = curve(1)^(-0.6). Net gain must never exceed unity.
+  const maximumMakeup=Math.pow(Math.pow(10,limiter.threshold.value/20),-.6);
+  assert(output.gain.value*maximumMakeup<=1);
+ };
+ let e=new window.CurrentAudio.Engine();assert.equal(e.context,null);await e.start(base);assertCompensated(e.graph.limiter);assert.equal(e.getSnapshot().left,108);
+assert.equal(e.getSnapshot().right,112);assert.equal(e.graph.duration,840);assert.equal(e.graph.session.settle,120);assert.equal(e.graph.end,840.02);
  e.context.currentTime=.1;
  for(let i=0;i<100;i++){const mode=['isochronic','monaural','binaural'][i%3];e.update({...base,mode,beat:mode==='binaural'?40:100,noise:['brown','pink','rain'],noiseGain:{brown:.4,pink:.4,rain:.4}});e.context.currentTime+=.01}
  assert(e.graph.state.noise.reduce((s,n)=>s+e.graph.state.noiseGain[n],0)<=.40000000001);
  e.update({...base,volume:9,carrier:60,beat:100,mode:'monaural'});assert.equal(e.graph.state.volume,.6);e.context.currentTime+=1;assert.equal(e.getSnapshot().left,40);assert.equal(e.getSnapshot().right,140);
- await e.testChannel('left');await e.testChannel('right');await e.stop();assert.equal(e.playing,false);
+
+ await e.testChannel('left');await e.testChannel('right');
+ assertCompensated(e.graph.limiter); // Running channel tests share this output path.
+ await e.stop();assert.equal(e.playing,false);
+ await e.testChannel('left');
+ assertCompensated(e.context.nodes.filter(n=>n.type==='compressor').at(-1));
+
  await e.start({...base,preset:'golden-lift',tempo:'golden',minutes:15,carrier:220,beat:10,align:'right',pulse:80,chord:true,accent:true});assert.equal(e.getSnapshot().left,220);assert.equal(e.getSnapshot().right,230);e.context.currentTime=e.graph.start+120;assert.equal(e.getSnapshot().pulse,115);e.context.currentTime=e.graph.start+840;assert.equal(e.getSnapshot().pulse,97.5);
 
  const golden={...base,preset:'golden-lift',tempo:'golden',minutes:20,carrier:220,beat:10,align:'right',pulse:80,chord:true,accent:true};
@@ -62,5 +83,5 @@ const base={mode:'binaural',carrier:110,beat:4,align:'center',volume:.25,minutes
  assert(e.getSnapshot().left>before&&e.getSnapshot().left<330);
  e.context.currentTime+=1;assert(Math.abs(e.getSnapshot().left-330)<.001);
 
- await e.stop();await e.start({...base,settle:0,fade:0,minutes:1});await e.stop();e.destroy();console.log('PASS: defensive cap/routing state; phase automation; 100 rapid switches without curve-overlap errors; noise cap; channel test schedule; exact scheduled lengths; Golden tempo persistence/manual override/equal-BPM toggles; live frequency slew readouts; live duration isolation; stop/restart lifecycle. Mock schedule checks only; no audible/FFT verification.');
+ await e.stop();await e.start({...base,settle:0,fade:0,minutes:1});await e.stop();e.destroy();console.log('PASS: no-boost compensated live/test output paths; defensive cap/routing state; phase automation; 100 rapid switches without curve-overlap errors; noise cap; channel test schedule; exact scheduled lengths; Golden tempo persistence/manual override/equal-BPM toggles; live frequency slew readouts; live duration isolation; stop/restart lifecycle. Mock schedule checks only; no audible/FFT verification.');
 })().catch(e=>{console.error(e);process.exit(1)});

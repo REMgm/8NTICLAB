@@ -112,6 +112,18 @@ const results = [];
     assert.ok(measurements.centeredLeft215>.1&&measurements.centeredRight225>.1);assert.equal(measurements.monauralChannelDiff,0);
     const rms=measurements.isoRms;let best=0,bestErr=Infinity;for(let lag=7;lag<=13;lag++){let err=0;for(let i=0;i<rms.length-lag;i++)err+=(rms[i]-rms[i+lag])**2;if(err<bestErr){bestErr=err;best=lag;}}assert.equal(best,10);measurements.isoPeriodMs=best*10;delete measurements.isoRms;return measurements;
   });
+  await check('Complete default 14-minute WAV and 48kHz 24-bit export',async()=>{
+    const details=await page.evaluate(async()=>{
+      async function header(blob){const d=new DataView(await blob.slice(0,44).arrayBuffer());return {bytes:blob.size,rate:d.getUint32(24,true),bits:d.getUint16(34,true),channels:d.getUint16(22,true),frames:d.getUint32(40,true)/(d.getUint16(22,true)*d.getUint16(34,true)/8)};}
+      const full=await CurrentAudio.renderWav(CurrentState.DEFAULTS);
+      const first=await header(full.blob);
+      const tail=new DataView(await full.blob.slice(-44100*4).arrayBuffer());let peak=0;for(let i=0;i<tail.byteLength;i+=2)peak=Math.max(peak,Math.abs(tail.getInt16(i,true)/32768));first.lastSecondPeak=peak;
+      const high=await CurrentAudio.renderWav({...CurrentState.DEFAULTS,minutes:1,settle:9,fade:9},{sampleRate:48000,bitDepth:24});
+      return {default:first,highResolution:await header(high.blob)};
+    });
+    assert.equal(details.default.rate,44100);assert.equal(details.default.bits,16);assert.equal(details.default.channels,2);assert.equal(details.default.frames/44100,840);assert.equal(details.default.bytes,148176044);assert.ok(details.default.lastSecondPeak<.001);
+    assert.equal(details.highResolution.rate,48000);assert.equal(details.highResolution.bits,24);assert.equal(details.highResolution.frames/48000,60);return details;
+  });
   await check('No uncaught application errors',async()=>{assert.deepEqual(errors,[]);});
   await visit();await page.setViewportSize({width:1440,height:1100});await page.screenshot({path:path.join(root,'desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(root,'mobile.png'),fullPage:true});

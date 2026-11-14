@@ -7,6 +7,13 @@
   'use strict';
 
   const TAU = Math.PI * 2;
+  // Native DynamicsCompressorNode adds automatic makeup gain in Web Audio 1.0.
+  // Its monotone curve is identity through our -12 dB threshold, so at full
+  // scale the makeup gain is at most (10^(-12/20))^(-0.6) = 2.2909.
+  // A fixed 0.40 stage keeps the combined gain below unity even before gain
+  // reduction. Reassess this bound if the threshold/limiter settings change.
+  // https://www.w3.org/TR/webaudio-1.0/#computing-the-makeup-gain
+  const LIMITER_OUTPUT_GAIN = 0.40;
   const NOISE_TYPES = ['brown', 'pink', 'rain'];
   const noiseCache = new WeakMap();
   const pulseCache = new WeakMap();
@@ -91,7 +98,8 @@
     limiter.ratio.value = 12;
     limiter.attack.value = 0.003;
     limiter.release.value = 0.1;
-    limiter.connect(destination);
+    const compensation = gain(ctx, LIMITER_OUTPUT_GAIN, list);
+    limiter.connect(compensation).connect(destination);
     if (list) list.push(limiter);
     return limiter;
   }

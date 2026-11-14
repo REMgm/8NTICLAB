@@ -13,8 +13,5 @@ for marker, filename in [('CURRENT_STATE', 'state.js'), ('CURRENT_ENGINE', 'engi
     if '</script' in source.lower():
         raise ValueError(f'Unsafe script closing tag in {filename}')
     template = template.replace(f'/* {marker} */', source)
-template = template.replace('  <script>/* CURRENT_STATE', '  <script>/* CURRENT_STATE')
-# The boot hook stores a complete session in a downloaded copy without storage access.
-template = template.replace('  <script>(function (root)', '  <script>/* CURRENT_BOOT */</script>\n  <script>(function (root)', 1)
 (root / 'index.html').write_text(template)
 print(f'Built index.html: {len(template.encode()):,} bytes, no runtime dependencies.')

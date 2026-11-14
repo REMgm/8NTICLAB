@@ -7,10 +7,15 @@
   const originalHTML = '<!doctype html>\n' + document.documentElement.outerHTML;
   const storage = S.loadStorage();
   const parsed = S.fromURL(location.search, storage.presets);
-  let state = window.__CURRENT_INITIAL_STATE__ ? S.normalize(window.__CURRENT_INITIAL_STATE__) : parsed.state;
+  let embedded = null;
+  try { embedded = JSON.parse($('current-boot').textContent); } catch (_) {}
+  const urlParams = new URLSearchParams(location.search);
+  const explicitSession = Object.keys(S.DEFAULTS).some(key=>urlParams.has(key));
+  let state = embedded && !explicitSession ? S.normalize(embedded) : parsed.state;
   let live = {playing:false,stopping:false,elapsed:0,contextState:'uninitialized'};
   let starting = false;
-  let phasesEdited = new URLSearchParams(location.search).has('settle') || new URLSearchParams(location.search).has('fade');
+  let audioUnavailable = false;
+  let phasesEdited = urlParams.has('settle') || urlParams.has('fade') || customPhases(state);
   let comfortShown = false;
   let saveTimer, urlTimer, toastTimer, wakeLock, exportController;
   let storageWarning = false;
@@ -19,6 +24,8 @@
   const mediaReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const prefs = Object.assign({wakeLock:true,reduceMotion:mediaReduce.matches,lastExportRate:44100,lastExportDepth:16},storage.prefs);
   prefs.reduceMotion = prefs.reduceMotion || mediaReduce.matches;
+  if(!urlParams.has('exportRate')&&!embedded)state.exportRate=prefs.lastExportRate;
+  if(!urlParams.has('exportDepth')&&!embedded)state.exportDepth=prefs.lastExportDepth;
   const engine = new A.Engine({onState: onAudioState, onEnd: onSessionEnd, onError: onAudioError});
   // Exposed for local diagnostics; contains no credentials or external services.
   window.CurrentApp = Object.freeze({getState:()=>S.normalize(state),getSnapshot:()=>engine.getSnapshot()});
@@ -46,10 +53,12 @@
     clearTimeout(saveTimer);
     storage.prefs = prefs;
     storage.lastSession = Object.assign({},state,{updatedAt:new Date().toISOString()});
-    if (!S.saveStorage(storage) && !storageWarning) {
+    const saved=S.saveStorage(storage);
+    if (!saved && !storageWarning) {
       storageWarning=true;
       toast('Could not save presets in this browser.',true);
     }
+    return saved;
   }
   function canonicalURL() {
     const url = new URL(location.href);
@@ -84,10 +93,11 @@
   function presetEntry() {return S.BUILT_INS[state.preset] || storage.presets.find(p=>p.slug===state.preset);}
   function activePreset() {const entry=presetEntry(); return entry && S.matchesPreset(state,entry) ? entry : null;}
   function displayName() {const entry=activePreset();return entry?entry.name:'Custom sound';}
+  function customPhases(s){const p=S.defaultPhases(s.minutes,s.preset);return s.settle!==p.settle||s.fade!==p.fade;}
   function loadPreset(slug) {
     const preset=S.BUILT_INS[slug] || storage.presets.find(p=>p.slug===slug);
     if(!preset){toast('That preset is not on this device.');return;}
-    phasesEdited=false;
+    phasesEdited=customPhases(S.normalize(preset));
     setState(S.normalize(preset),{notifyTiming:true});
     announce(preset.name+' loaded.',true);
   }
@@ -161,7 +171,7 @@
     document.body.classList.toggle('playing',isPlaying);
     const interrupted=isPlaying && live.contextState!=='running' && !isStopping;
     ['start','mobile-start'].forEach(id=>{
-      const button=$(id);button.disabled=isStopping||starting;
+      const button=$(id);button.disabled=isStopping||starting||audioUnavailable;
       button.setAttribute('aria-pressed',String(isPlaying));
       const word=starting?'Starting…':isStopping?'Fading out…':interrupted?'Resume':isPlaying?'Stop':'Start';
       button.setAttribute('aria-label',interrupted?'Resume generator':isPlaying?'Stop generator':'Start generator');
@@ -179,7 +189,7 @@
     $('mobile-status').textContent=isPlaying?(live.phase||'Listening'):displayName();
   }
   function onAudioState(snapshot){live=snapshot;renderTransport();if(live.playing&&Number.isFinite(live.left)&&Number.isFinite(live.right)){[['left-frequency',live.left],['right-frequency',live.right]].forEach(([id,hz])=>{$(id).firstChild.textContent=hz.toFixed(1)+' ';});}if(!live.playing&&!live.stopping){releaseWakeLock();} }
-  function onAudioError(message,code){$('audio-error').textContent=message;$('audio-error').hidden=false;toast(message,true);if(code==='E001'){['start','mobile-start'].forEach(id=>$(id).disabled=true);} }
+  function onAudioError(message,code){$('audio-error').textContent=message;$('audio-error').hidden=false;toast(message,true);if(code==='E001'){audioUnavailable=true;['start','mobile-start'].forEach(id=>$(id).disabled=true);} }
   function onSessionEnd(){releaseWakeLock();persist();$('next-session-hint').hidden=true;toast('Session ended. Take your time.');announce('Session ended.',true);render();}
   async function requestWakeLock(){
     if(!prefs.wakeLock||!live.playing||document.visibilityState!=='visible'||wakeLock)return;
@@ -189,7 +199,7 @@
   }
   async function releaseWakeLock(){if(wakeLock){try{await wakeLock.release();}catch(_){}wakeLock=null;}$('wake-hint').textContent='';}
   async function togglePlayback(){
-    if(starting||live.stopping||exportController)return;
+    if(starting||live.stopping||exportController||audioUnavailable)return;
     $('audio-error').hidden=true;
     if(live.playing&&live.contextState!=='running'){
       try{await engine.resume();live=engine.getSnapshot();renderTransport();if(live.contextState==='running')requestWakeLock();}catch(e){onAudioError(e.message,e.code);}return;
@@ -205,8 +215,11 @@
     catch(e){onAudioError(e.message,e.code);}
   }
   function bindNumeric(id,key,options){
-    options=options||{};const el=$(id);
+    options=options||{};const el=$(id);let dirty=false;
+    el.addEventListener('input',()=>{dirty=true;});
     function commit(){
+      if(!dirty){el.value=options.format?options.format(state[key]):String(state[key]);return;}
+      dirty=false;
       const text=el.value.trim();let n=Number(text);
       if(!text||!Number.isFinite(n)){el.value=options.format?options.format(state[key]):String(state[key]);return;}
       if(options.transform)n=options.transform(n);
@@ -218,7 +231,7 @@
       if(key==='carrier'){const f=S.frequencies(state);if(f.raised){setState({carrier:f.effectiveCarrier});el.value=state.carrier.toFixed(1);}}
     }
     el.addEventListener('blur',commit);
-    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){el.value=options.format?options.format(state[key]):String(state[key]);el.blur();}});
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){dirty=false;el.value=options.format?options.format(state[key]):String(state[key]);el.blur();}});
   }
   function changeDuration(minutes){setState(S.withDuration(state,Math.max(1,Math.min(90,minutes)),{preserveCustom:phasesEdited}),{notifyTiming:true});}
   async function copyLink(){
@@ -236,7 +249,7 @@
     const preset=Object.assign({},state,{slug,name,builtIn:false,preset:slug,createdAt:existing?.createdAt||new Date().toISOString()});
     if(existing)storage.presets=storage.presets.map(p=>p.slug===slug?preset:p);else storage.presets.push(preset);
     state=Object.assign({},state,{preset:slug});
-    persist();queueSave();$('save-dialog').close();render();toast('Preset saved on this device');
+    const saved=persist();queueSave();$('save-dialog').close();render();if(saved)toast('Preset saved on this device');else toast('Could not save presets in this browser. Kept for this visit only.',true);
   }
   function exportSize(){const min=Math.max(1,Math.min(90,Number($('export-minutes').value)||10));const rate=Number($('export-rate').value),depth=Number($('export-depth').value);const mb=min*60*rate*2*(depth/8)/1e6;$('export-size').textContent=shortTime(min*60)+' · Stereo · About '+Math.round(mb)+' MB';}
   function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
@@ -248,7 +261,7 @@
     const exportState=state.minutes===minutes?state:S.withDuration(state,minutes,{preserveCustom:phasesEdited});
     exportController=new AbortController();$('export-error').hidden=true;$('export-progress').hidden=false;$('cancel-export').hidden=false;$('export-submit').disabled=true;
     ['export-rate','export-depth','export-minutes'].forEach(id=>$(id).disabled=true);
-    prefs.lastExportRate=rate;prefs.lastExportDepth=depth;persist();
+    prefs.lastExportRate=rate;prefs.lastExportDepth=depth;setState({exportRate:rate,exportDepth:depth});persist();
     try{
       const result=await A.renderWav(exportState,{sampleRate:rate,bitDepth:depth,signal:exportController.signal,onProgress:n=>{$('export-progress-bar').value=n;$('export-progress-label').textContent=n>=99?'Preparing your download…':n<5?'Preparing audio…':'Rendering audio · approximately '+Math.floor(n)+'%';}});
       downloadBlob(result.blob,result.filename);$('export-progress-label').textContent='Your WAV is ready.';toast('WAV exported');
@@ -256,8 +269,9 @@
     finally{exportController=null;$('cancel-export').hidden=true;$('export-submit').disabled=false;['export-rate','export-depth','export-minutes'].forEach(id=>$(id).disabled=false);}
   }
   function downloadApp(){
-    const boot='<script>window.__CURRENT_INITIAL_STATE__='+JSON.stringify(S.normalize(state))+';<\/script>';
-    const html=originalHTML.replace('<script>/* CURRENT_BOOT */<\/script>',boot);
+    const copy=new DOMParser().parseFromString(originalHTML,'text/html');
+    copy.getElementById('current-boot').textContent=JSON.stringify(S.normalize(state));
+    const html='<!doctype html>\n'+copy.documentElement.outerHTML;
     downloadBlob(new Blob([html],{type:'text/html;charset=utf-8'}),'current-offline.html');toast('Offline copy downloaded');
   }
 
@@ -287,7 +301,7 @@
   $('save-form').addEventListener('submit',savePreset);
   $('open-shortcuts').addEventListener('click',()=>openDialog('shortcuts-dialog'));
   $('open-about').addEventListener('click',()=>openDialog('about-dialog'));
-  $('open-export').addEventListener('click',()=>{if(live.playing)return;$('export-minutes').value=state.minutes||10;$('export-rate').value=prefs.lastExportRate||44100;$('export-depth').value=prefs.lastExportDepth||16;$('export-error').hidden=true;$('export-progress').hidden=true;exportSize();openDialog('export-dialog');});
+  $('open-export').addEventListener('click',()=>{if(live.playing)return;$('export-minutes').value=state.minutes||10;$('export-rate').value=state.exportRate;$('export-depth').value=state.exportDepth;$('export-error').hidden=true;$('export-progress').hidden=true;exportSize();openDialog('export-dialog');});
   ['export-rate','export-depth','export-minutes'].forEach(id=>$(id).addEventListener('input',exportSize));
   $('export-form').addEventListener('submit',exportWav);$('cancel-export').addEventListener('click',()=>exportController?.abort());
   $$('.dialog-close').forEach(el=>el.addEventListener('click',()=>closeDialog(el.closest('dialog'))));

@@ -65,7 +65,7 @@ const results = [];
     assert.equal(await page.locator('[data-user-preset]').last().innerText(),'Evening <quiet>');
     assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'golden');
     await page.reload();assert.equal(await page.locator('[data-user-preset]').last().innerText(),'Evening <quiet>');
-    await page.locator('#advanced summary').click();await numeric('pulse-number',95);assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'steady');
+    await page.locator('#advanced summary').click();await page.locator('#pulse-number').focus();await page.locator('h1').click();assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'golden');await page.locator('#pulse-number').fill('99');await page.locator('#pulse-number').press('Escape');assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'golden');await numeric('pulse-number',95);assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'steady');
     await page.locator('.delete-preset').last().click();assert.equal(await page.locator('[data-user-preset]').count(),0);
   });
   await check('Start, live controls, stereo test, fade Stop, restart',async()=>{
@@ -84,14 +84,16 @@ const results = [];
   await check('Portable HTML download contains complete app and current session',async()=>{
     await visit('?preset=golden-lift&volume=.17');await page.locator('#advanced summary').click();
     const downloadPromise=page.waitForEvent('download');await page.locator('#download-app').click();const dl=await downloadPromise;const saved=path.join(root,'offline-check.html');await dl.saveAs(saved);
-    const html=fs.readFileSync(saved,'utf8');assert.match(html,/data:image\/webp;base64,/);assert.match(html,/window\.__CURRENT_INITIAL_STATE__=\{/);
+    const html=fs.readFileSync(saved,'utf8');assert.match(html,/data:image\/webp;base64,/);assert.match(html,/<script id="current-boot" type="application\/json">\{/);
     await page.goto('file://'+saved);assert.equal(await page.evaluate(()=>CurrentApp.getState().volume),.17);assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'golden');
+    await numeric('volume-number',21);await page.reload();assert.equal(await page.evaluate(()=>CurrentApp.getState().volume),.21);
+    await page.locator('#advanced summary').click();const secondDownload=page.waitForEvent('download');await page.locator('#download-app').click();const second=await secondDownload;const savedAgain=path.join(root,'offline-check-again.html');await second.saveAs(savedAgain);await page.goto('file://'+savedAgain);assert.equal(await page.evaluate(()=>CurrentApp.getState().volume),.21);
     await page.locator('#start').click();await page.waitForTimeout(150);assert.equal(await page.locator('#start').getAttribute('aria-pressed'),'true');await page.locator('#start').click();await page.waitForTimeout(1200);
   });
   await check('Measured WAV spectra, routing, PCM headers and isochronic periods',async()=>{
     await visit();const measurements=await page.evaluate(async()=>{
       function amplitude(samples,rate,hz,from=1,seconds=2){let real=0,imag=0;const offset=Math.floor(from*rate),n=Math.floor(seconds*rate);for(let i=0;i<n;i++){const v=samples[offset+i];const phase=2*Math.PI*hz*i/rate;real+=v*Math.cos(phase);imag-=v*Math.sin(phase);}return 2*Math.hypot(real,imag)/n;}
-      async function render(extra){const state=Object.assign({},CurrentState.DEFAULTS,{minutes:.1,settle:0,fade:0,pulseOn:false,noise:[],chord:false},extra);const out=await CurrentAudio.renderWav(state);const bytes=await out.blob.arrayBuffer();const d=new DataView(bytes),rate=d.getUint32(24,true),frames=(bytes.byteLength-44)/4,channels=[new Float32Array(frames),new Float32Array(frames)];for(let i=0;i<frames;i++){channels[0][i]=d.getInt16(44+i*4,true)/32768;channels[1][i]=d.getInt16(46+i*4,true)/32768;}return {rate,frames,bits:d.getUint16(34,true),channelCount:d.getUint16(22,true),channels};}
+      async function render(extra){const state=Object.assign({},CurrentState.DEFAULTS,{minutes:1,settle:0,fade:0,pulseOn:false,noise:[],chord:false},extra);const out=await CurrentAudio.renderWav(state);const bytes=await out.blob.arrayBuffer();const d=new DataView(bytes),rate=d.getUint32(24,true),frames=(bytes.byteLength-44)/4,channels=[new Float32Array(frames),new Float32Array(frames)];for(let i=0;i<frames;i++){channels[0][i]=d.getInt16(44+i*4,true)/32768;channels[1][i]=d.getInt16(46+i*4,true)/32768;}return {rate,frames,bits:d.getUint16(34,true),channelCount:d.getUint16(22,true),channels};}
       const calm=await render({});const [l,r]=calm.channels;
       const golden=await render({carrier:220,beat:10,align:'right',chord:true,tempo:'golden'});
       const center=await render({carrier:220,beat:10,align:'center'});
@@ -104,7 +106,7 @@ const results = [];
         goldenLeft220:amplitude(golden.channels[0],golden.rate,220),goldenRight230:amplitude(golden.channels[1],golden.rate,230),chord277:amplitude(golden.channels[0],golden.rate,277),chord330:amplitude(golden.channels[0],golden.rate,330),
         centeredLeft215:amplitude(center.channels[0],center.rate,215),centeredRight225:amplitude(center.channels[1],center.rate,225),monauralChannelDiff:channelDiff,isoRms:rms.slice(0,30)};
     });
-    assert.equal(measurements.rate,44100);assert.equal(measurements.bits,16);assert.equal(measurements.channels,2);assert.equal(measurements.duration,6);
+    assert.equal(measurements.rate,44100);assert.equal(measurements.bits,16);assert.equal(measurements.channels,2);assert.equal(measurements.duration,60);
     assert.ok(measurements.calmLeft108>.1&&measurements.calmRight112>.1);assert.ok(measurements.calmLeft112<.005&&measurements.calmRight108<.005);
     assert.ok(measurements.goldenLeft220>.1&&measurements.goldenRight230>.1);assert.ok(measurements.chord277>.005&&measurements.chord330>.005);
     assert.ok(measurements.centeredLeft215>.1&&measurements.centeredRight225>.1);assert.equal(measurements.monauralChannelDiff,0);

@@ -1,12 +1,13 @@
 # Current — acceptance and release evidence
 
-**Prepared:** 14 November 2026  
+**Verified:** 14 November 2026  
 **Application path:** `REMgm/8NTICLAB/apps/current`  
-**Release target:** `https://8-nticlab.vercel.app/apps/current/`  
+**Live application:** [https://8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/)  
 **Browser-tested implementation:** `645e618c346e43b0a3a17853985e9d38540bc27d`  
-**Status:** All 12 real Chromium checks passed, alongside 36 state checks and mocked scheduling checks. Current's production-route verification is pending.
+**Verified production implementation:** `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`  
+**Status:** Published and publicly verified. All 12 real Chromium checks passed, alongside 36 state checks and mocked scheduling checks. Live production playback and HTTPS offline navigation/playback also passed.
 
-Subsequent cover and canonical-URL metadata edits do not change audio or application behavior. Record the final released commit separately when production verification is complete.
+The production implementation includes cover/canonical-URL metadata and release evidence added after the full browser suite, without changes to playback behavior. Documentation-only commits may follow the verified production implementation without changing the application.
 
 This report distinguishes completed checks from intended behavior. A test script's presence does not establish a pass, a mocked graph does not establish the sound of a real browser, and a successful preview deployment does not establish that Current is publicly accessible.
 
@@ -112,32 +113,35 @@ Amplitudes above are dimensionless digital-signal measurements, not headphone so
 
 The real-browser suite is `tests/browser-check.cjs`, using an already available Chromium/Playwright environment. The application itself has no Playwright or other runtime dependency.
 
-## 7. Publication evidence and remaining release check
+## 7. Completed production release and live checks
 
-The source is already on a feature branch in the public `REMgm/8NTICLAB` repository. The following existing integration evidence was observed:
+Current is published on `main` in the public [REMgm/8NTICLAB repository](https://github.com/REMgm/8NTICLAB/tree/main/apps/current). The branch was fast-forwarded with an expected-previous-head guard and **without force**, preserving the root site's existing files. The repository's existing Git-to-Vercel integration deployed the release; no separate project or account authorization was needed.
 
-| Evidence | Result |
+| Release evidence | Verified result |
 | --- | --- |
-| Existing public root `https://8-nticlab.vercel.app/` | HTTP 200, 11,714 bytes |
-| Root content identity | Git blob SHA `cbbd64b8de5ebc7d7b2c08a4c809c9befc2c937b`, exactly matching the existing main-branch `index.html` |
-| Existing main commit `27a0ebadb3334506d5f390cd44cd5d5514affc23` | GitHub Vercel status: success, “Deployment has completed” |
-| Current feature commit `5cf431de94edc9eb65652a34be7b44d7ff1e2f41` | GitHub Vercel status: success, “Deployment has completed,” 14 November 2026 at 20:52:17 UTC |
-| Browser-tested implementation `645e618c346e43b0a3a17853985e9d38540bc27d` | Vercel preview check: success |
-| Feature preview | Exists, but redirects public requests to Vercel authentication; app content was not claimed as publicly verified |
+| Production implementation commit | `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b` |
+| Release tree | `82157d8c053a34641825dc2c12d73d74491bda09` |
+| Vercel deployment status | **SUCCESS** — [deployment dashboard](https://vercel.com/remgms-projects/8-nticlab/4CMw78nDnYth7dz3Xp8ZukfRJfEM) |
+| Public Current URL | `https://8-nticlab.vercel.app/apps/current/` — **HTTP 200**, **154,669 bytes** |
+| Public HTML SHA-256 | `c79cdcb29a6b2490b608ba8b5fc7f22d8c51b05ce43bc23a865ecbbd4b0c1e15`, exactly matching the released local HTML |
+| Existing root URL | `https://8-nticlab.vercel.app/` — **HTTP 200**, **11,714 bytes**, unchanged |
+| Root Git blob SHA | `cbbd64b8de5ebc7d7b2c08a4c809c9befc2c937b`, unchanged from before the release |
+| App service worker | `sw.js` — **HTTP 200**, **1,166 bytes**, JavaScript |
+| Social cover | `assets/current-cover.jpg` — **HTTP 200**, **64,455 bytes**, `image/jpeg` |
 
-This evidence establishes a functioning existing Git-to-Vercel path. It does not yet establish the final Current production release. Publishing uses the additive app directory and the existing integration: **no separate Vercel project, new account authorization, or changes to the root site's content are required.**
+**Live Chromium verification completed on 14 November 2026 at 22:02:45 Europe/Amsterdam (`2026-11-14T21:02:45Z`).** It exercised the real public production origin:
 
-After the final tested commit is fast-forwarded to `main`, complete these checks and record the outcome:
+| Live production check | Completed observation | Result |
+| --- | --- | --- |
+| Silent startup | Initial state was stopped; no audio context had been initialized | Pass |
+| Gesture Start | Clicking Start changed the session to playing and the audio context to running | Pass |
+| Faded Stop | Stop completed its fade and returned the session to stopped | Pass |
+| Service-worker installation | Ready and controlling the page; scope `https://8-nticlab.vercel.app/apps/current/`, script `https://8-nticlab.vercel.app/apps/current/sw.js` | Pass |
+| Offline session navigation | With the browser context explicitly offline, navigation to `?preset=golden-lift` loaded Current and restored carrier **220 Hz** / beat **10 Hz**, still silent | Pass |
+| Offline playback | A gesture started the offline Golden Lift session; Stop worked afterward | Pass |
+| Application errors | **Zero page errors** during the live checks | Pass |
 
-| Production check | Status |
-| --- | --- |
-| Released commit recorded and Vercel status completed | Pending |
-| `https://8-nticlab.vercel.app/apps/current/` returns the released Current HTML publicly | Pending |
-| Root site's content remains unchanged | Pending |
-| Session-link parameters resolve under the app subdirectory | Pending |
-| `sw.js` loads with the intended app scope and installs | Pending |
-| A later offline visit uses the cached Current page | Pending |
-| Browser playback at the production origin starts only after a user gesture | Pending |
+The public release, root integrity, session query handling, scoped cache, and offline playback are therefore completed checks. The remaining limitations below concern physical devices, other browser engines, and assistive technology; they are not unresolved publication steps.
 
 ## 8. Practical limits still requiring device checks
 

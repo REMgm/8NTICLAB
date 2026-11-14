@@ -8,15 +8,17 @@ The ready-to-use deliverable is **`index.html`**: a self-contained page with its
 
 ## Release status
 
-The application is published on a feature branch in the existing public **`REMgm/8NTICLAB`** product repository, isolated under **`apps/current`**. The repository's existing Git integration has already reported a successful Vercel preview deployment. Its existing root files and other applications are outside this change.
+**Current is live:** [8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/).
 
-**Current's production release and public route verification are still pending.** After the reviewed commit is fast-forwarded to `main`, the existing Vercel integration deploys the repository. The expected Current URL is **`https://8-nticlab.vercel.app/apps/current/`**; this is a release target, not yet a verified production result. No new repository, separate Vercel project, or account authorization is required for this publishing path.
+The [source is published on `main`](https://github.com/REMgm/8NTICLAB/tree/main/apps/current) in the public **`REMgm/8NTICLAB`** product repository, isolated under **`apps/current`**. Verified production implementation: **`090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`**. The repository's existing Git integration completed the Vercel production deployment after a guarded fast-forward; the existing root site remains byte-for-byte unchanged.
 
-See [ACCEPTANCE.md](ACCEPTANCE.md) for completed checks and remaining validation. Use the publishing steps below, then record the verified production URL and commit.
+The public page matches the released HTML. Live Chromium verified silent startup, gesture-driven playback, faded Stop, the scoped service worker, and offline navigation and playback of a shared Golden Lift session, with no page errors. Documentation-only commits may follow the verified implementation commit without changing the application.
+
+See [ACCEPTANCE.md](ACCEPTANCE.md) for completed measurements and the remaining physical-device limitations.
 
 ## Use it
 
-1. Open `index.html` in a recent browser.
+1. Open [Current online](https://8-nticlab.vercel.app/apps/current/), or open `index.html` in a recent desktop browser.
 2. Use stereo headphones for **Binaural** mode. **Isochronic** and **Monaural** also work with speakers.
 3. Leave the default Calm Current session selected, or choose Golden Lift.
 4. Press **Start** and adjust your device to a comfortable, low listening level.
@@ -128,7 +130,7 @@ python3 -m http.server 8000
 
 ## Verification status
 
-As of this prepared release on **14 November 2026**:
+Verified release on **14 November 2026**:
 
 | Check | Status and scope |
 | --- | --- |
@@ -139,14 +141,17 @@ As of this prepared release on **14 November 2026**:
 | Portable offline copy | **Passed**: complete self-contained download, current-session restoration, playback, and a second download retaining changed settings |
 | Final measured audio and WAV export | **Passed after output attenuation**: correct channel frequencies/routing, 10 Hz isochronic period, complete 14-minute 44.1 kHz/16-bit export, and one-minute 48 kHz/24-bit export |
 | Physical headphones, iPhone/iPad Safari, background interruption, and wake lock | **Pending device validation** |
-| GitHub and Vercel preview | **Published feature branch; Vercel reports successful deployment**. Preview is authentication-protected, so public app delivery is not claimed from that status alone |
-| Current production route and HTTPS offline cache | **Pending main-branch release and post-publication verification** |
+| GitHub and Vercel production | **Published on `main`; Vercel status SUCCESS** for production implementation `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`; public HTML exactly matches the release |
+| Current production route and HTTPS offline cache | **Passed live in Chromium**: silent startup, gesture Start/Stop, scoped service-worker control, offline Golden Lift navigation and playback, and zero page errors |
+| Existing root site | **Unchanged**: HTTP 200 and the same 11,714-byte content/hash as before the release |
 
 Update this table only from completed results. A desktop Chromium viewport test does not establish physical Safari or headphone behavior.
 
-The browser-tested implementation is commit **`645e618c346e43b0a3a17853985e9d38540bc27d`**; subsequent cover/canonical-URL metadata changes do not alter playback behavior. Detailed measured values, file sizes, and remaining production checks are recorded in [ACCEPTANCE.md](ACCEPTANCE.md).
+The full 12-check browser/DSP suite tested implementation commit **`645e618c346e43b0a3a17853985e9d38540bc27d`**. The production implementation **`090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`** incorporates cover/canonical-URL metadata and release evidence without changing playback behavior, and passed the live-hosted checks above. Detailed measured values, file sizes, and release hashes are recorded in [ACCEPTANCE.md](ACCEPTANCE.md).
 
-## Publish to GitHub and Vercel
+## Publishing updates
+
+The initial production release is complete. Future updates use the same existing Git-to-Vercel integration:
 
 1. Keep Current isolated under **`apps/current`** in **`REMgm/8NTICLAB`**. Publish the reviewed sources, regenerated `index.html`, `sw.js`, assets, and documentation on the feature branch. Do not publish credentials, browser traces, authentication state, or private briefing exports.
 2. Complete the acceptance checks. Inspect the latest feature and `main` heads and the additive diff. If `main` has not diverged, fast-forward it to the exact reviewed commit using the expected previous SHA. Preserve all existing root files and unrelated applications; do not force-overwrite concurrent changes.

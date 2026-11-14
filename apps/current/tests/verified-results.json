@@ -45,9 +45,9 @@
         "channels": 2,
         "duration": 60,
         "calmLeft108": 0.18692040112459987,
-        "calmLeft112": 1.16316239703164e-7,
+        "calmLeft112": 1.16316239703164e-07,
         "calmRight112": 0.1869201112447734,
-        "calmRight108": 2.1066412651666942e-7,
+        "calmRight108": 2.1066412651666942e-07,
         "goldenLeft220": 0.182903551827164,
         "goldenRight230": 0.1828894453144036,
         "chord277": 0.021635043650478834,
@@ -68,7 +68,7 @@
           "bits": 16,
           "channels": 2,
           "frames": 37044000,
-          "lastSecondPeak": 0.000030517578125
+          "lastSecondPeak": 3.0517578125e-05
         },
         "highResolution": {
           "bytes": 17280044,
@@ -88,5 +88,39 @@
   "physicalPhoneTest": false,
   "tested_source_commit": "645e618c346e43b0a3a17853985e9d38540bc27d",
   "runtime": "Chromium via the provisioned Higgsfield Playwright runtime",
-  "test_date": "2026-11-14"
+  "test_date": "2026-11-14",
+  "production": {
+    "status": "PASS",
+    "url": "https://8-nticlab.vercel.app/apps/current/",
+    "publicHTTP": 200,
+    "initialSilent": true,
+    "gesturePlayback": true,
+    "serviceWorker": {
+      "scope": "https://8-nticlab.vercel.app/apps/current/",
+      "script": "https://8-nticlab.vercel.app/apps/current/sw.js"
+    },
+    "offlineReload": true,
+    "offlineSessionPreset": "golden-lift",
+    "offlineSessionCarrier": 220,
+    "offlineSessionBeat": 10,
+    "offlineGesturePlayback": true,
+    "errors": [],
+    "verifiedAt": "2026-11-14T21:02:45.002Z",
+    "implementationCommit": "090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b",
+    "vercelStatus": "success",
+    "deployedHTML": {
+      "bytes": 154669,
+      "sha256": "c79cdcb29a6b2490b608ba8b5fc7f22d8c51b05ce43bc23a865ecbbd4b0c1e15",
+      "exactLocalMatch": true
+    },
+    "existingRoot": {
+      "bytes": 11714,
+      "gitBlobSha": "cbbd64b8de5ebc7d7b2c08a4c809c9befc2c937b",
+      "unchanged": true
+    },
+    "publicAssets": {
+      "serviceWorkerStatus": 200,
+      "coverStatus": 200
+    }
+  }
 }

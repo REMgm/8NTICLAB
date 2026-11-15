@@ -8,11 +8,11 @@ The ready-to-use deliverable is **`index.html`**: a self-contained page with its
 
 ## Release status
 
-**Current is live:** [8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/). The ten-preset expansion described below is implemented in the working source; its focused browser/audio checks and production publication are still awaiting completed results.
+**Current is live with all twelve presets:** [8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/). The ten-preset expansion passed **46 state checks, all 12 existing browser regression groups, and all 9 focused preset/browser/audio groups**. Production implementation **`1366b3f951ce70d8c227a8acf3478908f7ab3bc5`** is published and publicly verified, including live playback and HTTPS offline use.
 
-The [source is published on `main`](https://github.com/REMgm/8NTICLAB/tree/main/apps/current) in the public **`REMgm/8NTICLAB`** product repository, isolated under **`apps/current`**. Verified initial production implementation: **`090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`**. The repository's existing Git integration completed that Vercel production deployment after a guarded fast-forward; the existing root site remained byte-for-byte unchanged.
+The [source is published on `main`](https://github.com/REMgm/8NTICLAB/tree/main/apps/current) in the public **`REMgm/8NTICLAB`** product repository, isolated under **`apps/current`**. The repository's existing Git integration completed the expansion's Vercel production deployment with status **SUCCESS**. The public **180,921-byte** HTML exactly matches the tested local build; the existing root site remains unchanged.
 
-For that initial release, the public page matched the released HTML. Live Chromium verified silent startup, gesture-driven playback, faded Stop, the scoped service worker, and offline navigation and playback of a shared Golden Lift session, with no page errors. Those measurements are retained as release evidence; they do not establish that a later source change passed the same checks.
+Live Chromium verified all twelve preset options, silent Body Bass and Main Character Energy selection, gesture-driven 50 Hz playback and Stop, the updated scoped service worker, and offline Aura and untimed Vibe Tuned navigation/playback, with zero page errors. The downloadable HTML also contains the tested build. Documentation-only commits may follow the verified implementation without changing the application. Initial-release measurements remain separately recorded as the regression baseline.
 
 See [ACCEPTANCE.md](ACCEPTANCE.md) for completed measurements and the remaining physical-device limitations.
 
@@ -128,6 +128,7 @@ Current is for personal listening and makes no medical, therapeutic, or guarante
 | `tests/audio-schedule.test.cjs` | Mocked graph, scheduling, lifecycle, and compensated-output checks |
 | `tests/browser-check.cjs` | Real Chromium interaction, responsive, portable-file, and WAV-render checks using an already available Playwright installation |
 | `tests/preset-browser-check.cjs` | Focused real-browser checks for all twelve preset selectors, breathing, live Aura midpoint/readout edits, stopped preset switching, local/shared/offline state, 50/432 Hz drones, and both stages of a complete ten-minute Aura WAV |
+| `tests/preset-verification.json` | Consolidated verification evidence for the ten-preset release |
 | `tests/test_ui.py` | Browser integration checks for an environment with Playwright and Chromium already available |
 | `ACCEPTANCE.md` | Verification evidence, release status, and explicit limits |
 
@@ -158,12 +159,20 @@ python3 -m http.server 8000
 
 ### Ten-preset expansion
 
+The real Chromium runs tested **`1366b3f951ce70d8c227a8acf3478908f7ab3bc5`** (tree **`8b3558d87743f78880b8d6d61d1bb6d740056a48`**). The focused run completed at **`2026-11-15T02:53:29.483Z`**, with no uncaught page errors across either browser suite.
+
 | Check | Current status |
 | --- | --- |
 | State and serialization suite | **46 checks passed**, including all twelve preset definitions, exact Aura frequencies, drone normalization, sequence timing, saved/shared new fields, preset identity independent of export format, and Aura duration/envelope preservation when Untimed is rejected |
-| Focused preset browser harness | **Prepared; execution results pending**. Syntax checked with Node; real UI, breathing, drone, and Aura-render outcomes are not yet claimed |
-| Existing browser regression suite | **Update rerun pending**; initial-release results below remain the baseline |
-| New production publication and live HTTPS offline checks | **Pending for this expansion**; existing production route and Git integration are available |
+| Audio scheduling suite | **Passed using mocked Web Audio nodes and parameters**, including drone graphs and Aura scheduling; actual PCM measurements were also completed separately |
+| Focused preset browser harness | **All 9 groups passed**: twelve presets, breathing, live Aura, silent preset switching, local/shared/offline persistence, both drones, complete Aura audio, and error collection |
+| Existing browser regression suite | **All 12 groups passed again**, including the complete 14-minute default WAV and 48 kHz/24-bit export |
+| Live Aura interaction | **Passed**: stage 2 observed at **30.3517 seconds** in a one-minute fixture; 220/230 Hz readouts survived a volume rerender; editing the beat to 12 Hz preserved the active carrier/alignment and produced 220/232 Hz |
+| Real drone and Aura audio | **Passed**: 50/432 Hz tones each had measured purity above **0.99999999** and identical channels; complete ten-minute Aura WAV contained the correct tone pair before and after its five-minute transition |
+| Responsive and visual review | **Passed** without horizontal overflow at **320, 390, 768, and 1440 px**; desktop 1440 px and mobile 390 px preset-library/breathing views were visually inspected |
+| Production publication and public artifact | **Passed**: implementation `1366b3f951ce70d8c227a8acf3478908f7ab3bc5` published through the existing Git integration; Vercel **SUCCESS**; public HTML **HTTP 200**, **180,921 bytes**, exact local SHA-256 match |
+| Live HTTPS offline checks | **Passed at `2026-11-15T02:56:19.392Z`**: twelve options, silent preset loading, Body Bass gesture Start/Stop, updated scoped service worker, offline Aura and untimed Vibe playback, zero errors |
+| Existing root site | **Unchanged** at **11,714 bytes**, with the original Git blob SHA |
 
 Run the focused browser harness only in an environment with Playwright and Chromium already provisioned. It installs nothing:
 
@@ -194,7 +203,7 @@ The full 12-check browser/DSP suite tested implementation commit **`645e618c346e
 
 ## Publishing updates
 
-The initial production release is complete. Future updates use the same existing Git-to-Vercel integration:
+The twelve-preset production release is complete. Future updates use the same existing Git-to-Vercel integration:
 
 1. Keep Current isolated under **`apps/current`** in **`REMgm/8NTICLAB`**. Publish the reviewed sources, regenerated `index.html`, `sw.js`, assets, and documentation on the feature branch. Do not publish credentials, browser traces, authentication state, or private briefing exports.
 2. Complete the acceptance checks. Inspect the latest feature and `main` heads and the additive diff. If `main` has not diverged, fast-forward it to the exact reviewed commit using the expected previous SHA. Preserve all existing root files and unrelated applications; do not force-overwrite concurrent changes.

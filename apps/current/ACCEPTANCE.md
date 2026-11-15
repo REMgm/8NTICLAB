@@ -3,12 +3,14 @@
 **Initial release verified:** 14 November 2026  
 **Application path:** `REMgm/8NTICLAB/apps/current`  
 **Live application:** [https://8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/)  
-**Browser-tested implementation:** `645e618c346e43b0a3a17853985e9d38540bc27d`  
-**Verified production implementation:** `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`  
+**Initial browser-tested implementation:** `645e618c346e43b0a3a17853985e9d38540bc27d`  
+**Initial verified production implementation:** `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`  
+**Expansion browser-tested implementation:** `1366b3f951ce70d8c227a8acf3478908f7ab3bc5`  
+**Expansion verified production implementation:** `1366b3f951ce70d8c227a8acf3478908f7ab3bc5`  
 **Initial-release status:** Published and publicly verified. All 12 real Chromium checks passed, alongside 36 state checks and mocked scheduling checks. Live production playback and HTTPS offline navigation/playback also passed.  
-**Ten-preset expansion status:** Implemented in the working source, with 46 state checks passed. Focused browser/audio results and production verification for the expansion are pending; the initial-release results below are not a blanket pass for the new implementation.
+**Ten-preset expansion status:** **Published and publicly verified.** **46 state checks, mocked audio scheduling checks, all 12 existing real Chromium regression groups, and all 9 focused preset/browser/audio groups passed.** The focused run completed at `2026-11-15T02:53:29.483Z`. Live production playback and HTTPS offline verification passed at `2026-11-15T02:56:19.392Z`. There were zero uncaught page errors.
 
-The production implementation includes cover/canonical-URL metadata and release evidence added after the full browser suite, without changes to playback behavior. Documentation-only commits may follow the verified production implementation without changing the application.
+The initial production implementation included cover/canonical-URL metadata and release evidence added after its full browser suite. The expansion's production implementation is the exact commit tested by both browser suites. Documentation-only commits may follow that verified implementation without changing the application.
 
 This report distinguishes completed checks from intended behavior. A test script's presence does not establish a pass, a mocked graph does not establish the sound of a real browser, and a successful preview deployment does not establish that Current is publicly accessible.
 
@@ -36,21 +38,43 @@ The state fields `sequence: 'none' | 'aura'` and `breathing: 'none' | '4-6'` are
 | Expansion check | Status and scope |
 | --- | --- |
 | `tests/state.test.cjs` | **46 checks passed**, covering the new definitions, precise frequency math, drone invariants, Aura stage metadata, new-field URL/storage round trips, export-format-independent preset identity, and preservation of Aura duration/envelope when Untimed is rejected |
-| `tests/audio-schedule.test.cjs` | Updated mocked scheduling checks reported passing by the engine implementation task; real rendered audio is a separate check |
-| `tests/preset-browser-check.cjs` syntax | **Passed** with `node --check`; no browser pass inferred |
-| All twelve menu/library selectors and visible exact/rounded readouts | Focused browser result pending |
-| Real 4-in / 6-out UI cycle, saved preset, fresh-context shared link, and downloaded offline copy | Focused browser result pending |
-| Live Aura midpoint/readouts, volume rerender, manual beat edit, and fade-before-loading a silent new preset | Focused browser result pending |
-| Pure 50 Hz and 432 Hz drone WAVs | Real PCM measurement pending |
-| Full ten-minute Aura WAV before and after 300 seconds | Real PCM measurement pending |
-| Existing twelve-check browser regression suite against the expansion | Rerun pending |
-| Expanded production deployment and live HTTPS offline playback | Pending |
+| `tests/audio-schedule.test.cjs` | **Passed with mocked Web Audio nodes/parameters**, including the new drone graph and Aura scheduling; measured real audio is reported separately below |
+| `tests/preset-browser-check.cjs` | **All 9 real Chromium groups passed**, with zero uncaught page errors |
+| All twelve menu/library selectors and visible exact/rounded readouts | **Passed**; all presets loaded the expected state and remained silent until Start |
+| Real 4-in / 6-out UI cycle, saved preset, fresh-context shared link, and downloaded offline copy | **Passed**; sequence and breathing fields survived each path |
+| Live Aura midpoint/readouts, volume rerender, and manual beat edit | **Passed** at actual audio elapsed **30.35170068027211 seconds**, with the expected stage-two and edited frequencies |
+| Selecting a different preset while playing | **Passed**; Main Character Energy faded to Stop and Rizz Mode loaded without autoplay |
+| Pure 50 Hz and 432 Hz drone WAVs | **Passed**; one requested tone, measured purity above **0.99999999**, identical left/right channels |
+| Full ten-minute Aura WAV before and after 300 seconds | **Passed**; correct exact stage-one pair and stage-two 220/230 Hz pair, complete encoding and smooth boundary |
+| Existing twelve-check browser regression suite against the expansion | **All 12 groups passed**, including original controls, persistence, responsive layout, portable files, audio measurements, complete 14-minute export, and 48 kHz/24-bit export |
+| Responsive layout and visual review | **Passed** at **320, 390, 768, and 1440 px** without horizontal overflow; actual 1440 px desktop and 390 px mobile library/breathing screenshots inspected |
+| Expanded production deployment and live HTTPS offline playback | **Passed**; exact public HTML match, updated controlling service worker, offline Aura and Vibe Tuned playback, and zero live page errors |
 
 The focused browser harness uses an already provisioned Playwright/Chromium installation and an isolated browser profile; it installs no dependencies. It checks both the native selector and the expandable twelve-button library, confirms silent preset loading, observes the first breathing cycle, saves and reloads a custom Aura session with breathing enabled, restores that sound in a fresh browser context, and downloads/plays its complete offline HTML with network access disabled.
 
-A live Aura fixture uses a one-minute duration with zero Settle/Fade and waits for actual audio elapsed time to reach **30.35 seconds**. It must show stage **2 / 2 · Lift**, **220 / 230 Hz**, and the **10 Hz** beat. Editing volume must preserve those active readouts through a full UI render. Editing the beat to **12 Hz** must leave the sequence, retain the active **220 Hz / right-aligned** configuration, and settle at **220 / 232 Hz**. A separate interaction observes a running preset's faded stop before a newly selected preset loads silently. These are real audio-clock and UI checks, not an accelerated JavaScript timer simulation.
+A live Aura fixture used a one-minute duration with zero Settle/Fade and waited for actual audio elapsed time to cross its midpoint. At **30.35170068027211 seconds**, it showed stage **2 / 2 · Lift**, **220 / 230 Hz**, and the **10 Hz** beat. Editing volume preserved those active readouts through a full UI render. Editing the beat to **12 Hz** left the sequence, retained the active **220 Hz / right-aligned** configuration, and settled at **220 / 232 Hz**. A separate interaction observed Main Character Energy's faded stop before Rizz Mode loaded silently. These passed against the real audio clock and rendered UI, without an accelerated JavaScript timer simulation.
 
-Its real-audio probes call the production `CurrentAudio.renderWav` graph. The two drone fixtures use a one-minute finite duration with zero Settle/Fade to measure a stable tone; this diagnostic override does not change Vibe Tuned's untimed default. They measure each tone's amplitude, concentration of energy at the requested frequency, and left/right equality. The Aura probe renders the complete **600-second** stereo **44.1 kHz / 16-bit** WAV and measures four-second windows beginning at **295 seconds** and **301 seconds**, plus adjacent-sample continuity around the midpoint. A pass must come from the resulting PCM, not from querying configured frequencies alone.
+Its real-audio probes called the production `CurrentAudio.renderWav` graph. The two drone fixtures used a one-minute finite duration with zero Settle/Fade to measure a stable tone; this diagnostic override does not change Vibe Tuned's untimed default. They measured each tone's amplitude, concentration of energy at the requested frequency, and left/right equality. The Aura probe rendered the complete **600-second** stereo **44.1 kHz / 16-bit** WAV and measured four-second windows beginning at **295 seconds** and **301 seconds**, plus adjacent-sample continuity around the midpoint. The results below came from the resulting PCM, not from querying configured frequencies alone.
+
+### Completed expansion measurements
+
+**Tested commit:** `1366b3f951ce70d8c227a8acf3478908f7ab3bc5`  
+**Tested tree:** `8b3558d87743f78880b8d6d61d1bb6d740056a48`  
+**Focused run completed:** `2026-11-15T02:53:29.483Z`  
+**Release evidence file:** `tests/preset-verification.json`
+
+| Real Chromium measurement | Completed result |
+| --- | --- |
+| Body Bass 50 Hz drone | Amplitude **0.1869203507**; tone purity **0.9999999954**; maximum left/right sample difference **0** |
+| Vibe Tuned 432 Hz drone | Amplitude **0.1869205013**; tone purity **0.9999999941**; maximum left/right sample difference **0** |
+| Complete Aura WAV | **600 seconds**, stereo **44.1 kHz / 16-bit**, **26,460,000 frames**, **105,840,044 bytes** |
+| Aura stage 1, window starting at 295 seconds | Left **132.085 Hz** amplitude **0.186880826**; right **139.915 Hz** amplitude **0.186941784** |
+| Aura stage 2, window starting at 301 seconds | Left **220 Hz** amplitude **0.186920468**; right **230 Hz** amplitude **0.186920778** |
+| Aura midpoint continuity | Largest adjacent-sample difference around the transition: **0.0061340332** |
+| Original full-length / higher-resolution exports | Complete **14-minute** default export and **48 kHz / 24-bit** export passed again in the regression suite |
+| Browser errors | **Zero uncaught page errors** across the **12 regression + 9 focused** groups |
+
+Amplitude, purity, and sample differences are digital-signal measurements, not calibrated headphone loudness or evidence of a health effect. Physical-device limitations remain listed below.
 
 Reproduction in a prepared browser environment:
 
@@ -58,7 +82,38 @@ Reproduction in a prepared browser environment:
 node tests/preset-browser-check.cjs
 ```
 
-Optional environment variables are `CURRENT_PLAYWRIGHT` (existing package path), `CURRENT_TEST_URL` (hosted target; otherwise the local `index.html`), and `CURRENT_PRESET_RESULTS` (report path; otherwise `tests/preset-browser-results.json`). Record the completed report and released implementation before marking expansion checks passed.
+Optional environment variables are `CURRENT_PLAYWRIGHT` (existing package path), `CURRENT_TEST_URL` (hosted target; otherwise the local `index.html`), and `CURRENT_PRESET_RESULTS` (report path; otherwise `tests/preset-browser-results.json`). The completed browser evidence is associated with the exact tested implementation above. The separate public-deployment and HTTPS offline checks are recorded next.
+
+### Completed expansion production release
+
+The tested implementation is published on `main` in the public [REMgm/8NTICLAB repository](https://github.com/REMgm/8NTICLAB/tree/main/apps/current), under `apps/current`. The existing Git-to-Vercel integration deployed it successfully. The root site's existing content remains unchanged.
+
+| Expansion release evidence | Verified result |
+| --- | --- |
+| Production implementation commit | `1366b3f951ce70d8c227a8acf3478908f7ab3bc5`, identical to the browser-tested implementation |
+| Production tree | `8b3558d87743f78880b8d6d61d1bb6d740056a48` |
+| Vercel deployment status | **SUCCESS** — [deployment dashboard](https://vercel.com/remgms-projects/8-nticlab/9jt6XWctHxkqJpH5NRfdCSqDtxwV) |
+| Public Current URL | `https://8-nticlab.vercel.app/apps/current/` — **HTTP 200**, **180,921 bytes** |
+| Public HTML SHA-256 | `56bdcafd969f9ac717dcae651e864113b9a7e4d88e2cb01fb37e207dee0f6ce2`, exactly matching the tested local HTML |
+| Updated service worker | `sw.js` — **HTTP 200**, **1,174 bytes**; cache `current-static-v2-20261115-presets` |
+| Existing root site | **Unchanged**, **11,714 bytes**; Git blob `cbbd64b8de5ebc7d7b2c08a4c809c9befc2c937b` |
+| Downloadable offline HTML | Updated to the tested build |
+
+**Live Chromium verification completed at `2026-11-15T02:56:19.392Z`.** The browser exercised the real public production origin:
+
+| Live production check | Completed observation | Result |
+| --- | --- | --- |
+| Preset library | All **12** built-in options present | Pass |
+| Body Bass shared URL | Loaded silently with **50 Hz**, drone mode, beat **0**, and **4-in / 6-out** breathing | Pass |
+| Body Bass playback | A gesture started playback at **50 / 50 Hz**; Stop completed | Pass |
+| Main Character Energy selection | Loaded silently with steady **115 BPM** and the chord enabled | Pass |
+| Hosted offline cache | Updated service worker ready and controlling `https://8-nticlab.vercel.app/apps/current/`, using `current-static-v2-20261115-presets` | Pass |
+| Offline Aura navigation | With the browser context explicitly offline, the Aura query restored sequence **aura**, **10 minutes**, **7.83 Hz**, and the stage guide | Pass |
+| Offline Aura playback | Gesture Start produced a **600-second** session with initial left tone **132.085 Hz**; Stop worked | Pass |
+| Offline Vibe Tuned | **432 Hz**, untimed session loaded and supported gesture Start/Stop with the network offline | Pass |
+| Application errors | **Zero uncaught page errors** during the live checks | Pass |
+
+Publication, artifact integrity, twelve-preset availability, the new cache, and hosted offline playback are completed checks. The remaining physical-device and other-browser limitations below do not block this completed release. Documentation-only follow-up commits may add this evidence without changing the verified production application.
 
 ## Initial-release evidence
 

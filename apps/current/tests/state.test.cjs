@@ -144,6 +144,15 @@ test('duration helper chooses defaults or preserves custom phases explicitly', (
   const custom = S.normalize({ settle: 30, fade: 90 });
   same(S.phases(S.withDuration(custom, 2, { preserveCustom: true })), { settle: 30, core: 0, fade: 90, total: 120 });
 });
+test('an untimed Aura request preserves the existing duration and envelope', () => {
+  const aura=S.fromURL('?preset=aura-farming').state;
+  same(S.withDuration(aura,0),aura);
+  const custom=S.normalize({minutes:20,settle:17,fade:39},aura);
+  same(S.withDuration(custom,0,{preserveCustom:false}),custom);
+  same(S.withDuration(custom,0,{preserveCustom:true}),custom);
+  same(S.phases(S.withDuration(custom,25,{preserveCustom:true})),{settle:17,core:1444,fade:39,total:1500});
+  assert.equal(S.withDuration(S.DEFAULTS,0).minutes,0);
+});
 test('untimed state has no session envelope phases', () => {
   same(S.phases(S.fromURL('?minutes=0').state), { settle: 0, core: 0, fade: 0, total: 0 });
 });
@@ -264,5 +273,145 @@ test('published defaults and built-ins are immutable', () => {
   assert.equal(Object.isFrozen(S.BUILT_INS),true);
   assert.equal(Object.isFrozen(S.BUILT_INS['golden-lift'].noiseGain),true);
   assert.equal(Object.isFrozen(S.DEFAULTS),true);
+});
+test('all ten additional presets use the requested modes, pitches and durations', () => {
+  const expected = [
+    ['main-character-energy','binaural',220,10,'right',15,220,230],
+    ['rizz-mode','binaural',528,6,'center',10,525,531],
+    ['lucky-glitch','isochronic',300,40,'center',10,300,300],
+    ['aura-farming','binaural',136,7.83,'center',10,132.085,139.915],
+    ['locked-in','binaural',200,15,'center',25,192.5,207.5],
+    ['soft-life','binaural',110,4,'center',14,108,112],
+    ['dream-portal','binaural',150,6,'center',20,147,153],
+    ['deep-reset','binaural',100,2,'center',30,99,101],
+    ['vibe-tuned','drone',432,0,'center',0,432,432],
+    ['body-bass','drone',50,0,'center',10,50,50]
+  ];
+  assert.equal(Object.keys(S.BUILT_INS).length,12);
+  for (const [slug,mode,carrier,beat,align,minutes,left,right] of expected) {
+    const preset=S.BUILT_INS[slug], state=S.fromURL('?preset='+slug).state, f=S.frequencies(state);
+    assert.ok(preset && preset.builtIn && Object.isFrozen(preset),slug);
+    assert.ok(preset.name && preset.description && preset.category && preset.purpose && preset.guidance,slug+' metadata');
+    assert.equal(state.mode,mode,slug+' mode');
+    assert.equal(state.carrier,carrier,slug+' carrier');
+    assert.equal(state.beat,beat,slug+' beat');
+    assert.equal(state.align,align,slug+' alignment');
+    assert.equal(state.minutes,minutes,slug+' duration');
+    assert.ok(Math.abs(f.left-left)<1e-9,slug+' left pitch');
+    assert.ok(Math.abs(f.right-right)<1e-9,slug+' right pitch');
+    assert.equal(state.volume,.25,slug+' default volume');
+    same(state.noise,[]);
+  }
+});
+test('additional preset pulses, breathing, chords and envelopes are explicit', () => {
+  const main=S.fromURL('?preset=main-character-energy').state;
+  assert.equal(main.chord,true); assert.equal(main.pulseOn,true); assert.equal(main.pulse,115);
+  assert.equal(main.tempo,'steady'); assert.equal(main.pulseDepth,.12); assert.equal(main.accent,false);
+  const soft=S.fromURL('?preset=soft-life').state;
+  assert.equal(soft.pulseOn,true); assert.equal(soft.pulse,60); assert.equal(soft.pulseDepth,.10);
+  for (const slug of ['rizz-mode','body-bass']) assert.equal(S.fromURL('?preset='+slug).state.breathing,'4-6');
+  for (const slug of ['lucky-glitch','locked-in','dream-portal','deep-reset','vibe-tuned']) {
+    const x=S.fromURL('?preset='+slug).state;
+    assert.equal(x.pulseOn,false); assert.equal(x.chord,false); assert.equal(x.breathing,'none');
+  }
+  same(S.phases(S.fromURL('?preset=aura-farming&minutes=10').state),{settle:10,core:580,fade:10,total:600});
+  same(S.phases(S.fromURL('?preset=deep-reset&minutes=30').state),{settle:120,core:1380,fade:300,total:1800});
+  same(S.phases(S.fromURL('?preset=vibe-tuned').state),{settle:0,core:0,fade:0,total:0});
+});
+test('drone keeps one steady pitch with its own lower carrier limit', () => {
+  const x=S.fromURL('?mode=drone&carrier=50&beat=99&pulseOn=1&accent=1&chord=1').state;
+  assert.equal(x.carrier,50);assert.equal(x.beat,0);assert.equal(x.pulseOn,false);
+  assert.equal(x.accent,false);assert.equal(x.chord,false);
+  same(S.frequencies(x),{left:50,right:50,effectiveCarrier:50,raised:false});
+  assert.equal(S.normalize({mode:'drone',carrier:1}).carrier,40);
+  assert.equal(S.normalize({mode:'drone',carrier:999}).carrier,600);
+  assert.equal(S.normalize({mode:'binaural',carrier:50}).carrier,60);
+  assert.equal(S.band(0).id,'drone');
+  const changed=S.normalize({mode:'binaural'},x);
+  assert.equal(changed.carrier,60);assert.equal(changed.beat,.5);
+});
+test('Aura stage metadata and frequencies change exactly at the midpoint', () => {
+  const aura=S.fromURL('?preset=aura-farming').state;
+  assert.equal(aura.sequence,'aura');
+  const first=S.sequenceAt(aura,0);
+  assert.equal(first.stageIndex,1);assert.equal(first.stageCount,2);assert.equal(first.stageName,'Ground');
+  assert.equal(first.stageRemaining,300);assert.equal(first.stageElapsed,0);
+  assert.equal(first.frequencies.left.toFixed(1),'132.1');assert.equal(first.frequencies.right.toFixed(1),'139.9');
+  assert.equal(S.sequenceAt(aura,299.999).stageIndex,1);
+  const second=S.sequenceAt(aura,300);
+  assert.equal(second.stageIndex,2);assert.equal(second.stageName,'Lift');assert.equal(second.stageRemaining,300);
+  assert.equal(second.frequencies.left,220);assert.equal(second.frequencies.right,230);
+  assert.equal(second.state.carrier,220);assert.equal(second.state.beat,10);assert.equal(second.state.align,'right');
+  assert.equal(S.sequenceAt(aura,600).stageRemaining,0);
+  assert.equal(S.sequenceAt(aura,700).stageIndex,2);
+  const longer=S.fromURL('?preset=aura-farming&minutes=20').state;
+  assert.equal(S.sequenceAt(longer,599.999).stageIndex,1);assert.equal(S.sequenceAt(longer,600).stageIndex,2);
+});
+test('Aura validation keeps a defined binaural programme and manual tuning can clear it', () => {
+  const aura=S.fromURL('?sequence=aura&minutes=0&carrier=300&beat=15').state;
+  assert.equal(aura.minutes,10);assert.equal(aura.mode,'binaural');assert.equal(aura.carrier,136);assert.equal(aura.beat,7.83);
+  assert.equal(S.normalize({mode:'isochronic'},aura).sequence,'none');
+  assert.equal(S.normalize({mode:'drone'},aura).sequence,'none');
+  const manual=S.normalize({sequence:'none',carrier:300,beat:15},aura);
+  assert.equal(manual.sequence,'none');assert.equal(manual.carrier,300);assert.equal(manual.beat,15);
+  assert.equal(S.normalize({volume:.2},manual).sequence,'none');
+  const ordinary=S.sequenceAt(S.DEFAULTS,10);
+  assert.equal(ordinary.stageCount,1);assert.equal(ordinary.stageIndex,1);assert.equal(ordinary.stageRemaining,830);
+});
+test('sequence and breathing enum values use safe defaults and explicit overrides', () => {
+  assert.equal(S.DEFAULTS.sequence,'none');assert.equal(S.DEFAULTS.breathing,'none');
+  const invalid=S.fromURL('?sequence=unknown&breathing=hold-forever').state;
+  assert.equal(invalid.sequence,'none');assert.equal(invalid.breathing,'none');
+  assert.equal(S.fromURL('?preset=aura-farming&sequence=none').state.sequence,'none');
+  assert.equal(S.fromURL('?preset=rizz-mode&breathing=none').state.breathing,'none');
+  const guide=S.fromURL('?mode=drone&carrier=50&breathing=4-6').state;
+  assert.equal(guide.breathing,'4-6');
+  same(S.fromURL(S.toQuery(guide)).state,guide);
+});
+test('all twelve preset defaults roundtrip through canonical links', () => {
+  for(const slug of Object.keys(S.BUILT_INS)) {
+    const state=S.fromURL('?preset='+slug).state;
+    const query=S.toQuery(state);
+    same(S.fromURL(query).state,state);
+    assert.equal(S.toQuery(S.fromURL(query).state),query,slug);
+  }
+});
+test('export format persists without changing the active preset identity', () => {
+  const high=S.normalize({exportRate:48000,exportDepth:24},S.DEFAULTS);
+  assert.equal(S.matchesPreset(high,S.BUILT_INS['calm-current']),true);
+  assert.equal(S.matchesPreset(S.normalize({volume:.17},high),S.BUILT_INS['calm-current']),false);
+  const query=S.toQuery(high), params=new URLSearchParams(query);
+  assert.equal(params.get('exportRate'),'48000');assert.equal(params.get('exportDepth'),'24');
+  same(S.fromURL(query).state,high);
+  const {S:T}=createAPI(),data=T.loadStorage();
+  data.lastSession=high;
+  data.presets=[Object.assign({},high,{slug:'my-format',name:'My format',preset:'my-format',builtIn:false})];
+  assert.equal(T.saveStorage(data),true);
+  const restored=T.loadStorage();
+  assert.equal(restored.lastSession.exportRate,48000);assert.equal(restored.lastSession.exportDepth,24);
+  const saved=restored.presets[0],alternate=T.normalize({exportRate:44100,exportDepth:16},saved);
+  assert.equal(T.matchesPreset(alternate,saved),true);
+  assert.equal(saved.exportRate,48000);assert.equal(saved.exportDepth,24);
+});
+test('saved custom Aura and breathing drone survive storage and another device', () => {
+  const {S:T}=createAPI();
+  const aura=T.normalize({preset:'my-aura',volume:.2},T.BUILT_INS['aura-farming']);
+  const bass=T.normalize({preset:'my-low-tone',volume:.15},T.BUILT_INS['body-bass']);
+  const data=T.loadStorage();
+  data.presets=[Object.assign({},aura,{slug:'my-aura',name:'My aura',builtIn:false}),
+    Object.assign({},bass,{slug:'my-low-tone',name:'My low tone',builtIn:false})];
+  data.lastSession=aura;
+  assert.equal(T.saveStorage(data),true);
+  const loaded=T.loadStorage();
+  assert.equal(loaded.lastSession.sequence,'aura');
+  assert.equal(loaded.presets[0].sequence,'aura');
+  assert.equal(loaded.presets[1].mode,'drone');assert.equal(loaded.presets[1].breathing,'4-6');
+  for(const item of loaded.presets) {
+    const state=T.fromURL('?preset='+item.slug,loaded.presets).state;
+    const query=T.toQuery(state);
+    assert.ok(new URLSearchParams(query).has('sequence'));assert.ok(new URLSearchParams(query).has('breathing'));
+    const elsewhere=T.fromURL(query).state;
+    same(Object.assign({},elsewhere,{preset:state.preset}),state);
+  }
 });
 console.log('\n' + passed + ' state tests passed.');

@@ -24,25 +24,30 @@
   const error = (code, message) => Object.assign(new Error(message), {code});
 
   function normalize(input = {}) {
-    const mode = ['binaural', 'isochronic', 'monaural'].includes(input.mode) ? input.mode : 'binaural';
+    const mode = ['binaural', 'isochronic', 'monaural', 'drone'].includes(input.mode) ? input.mode : 'binaural';
     const s = {
-      mode, carrier: clamp(input.carrier, 60, 600, 110),
-      beat: clamp(input.beat, 0.5, mode === 'binaural' ? 40 : 100, 4),
+      mode, carrier: clamp(input.carrier, mode === 'drone' ? 40 : 60, 600, 110),
+      beat: mode === 'drone' ? 0 : clamp(input.beat, 0.5, mode === 'binaural' ? 40 : 100, 4),
       align: input.align === 'right' ? 'right' : 'center',
       volume: clamp(input.volume, 0, 0.6, 0.25),
       minutes: Math.round(clamp(input.minutes, 0, 90, 14)),
       settle: clamp(input.settle, 0, 300, 120),
       fade: clamp(input.fade, 0, 300, 120),
-      pulseOn: input.pulseOn === undefined ? true : !!input.pulseOn,
+      pulseOn: mode !== 'drone' && (input.pulseOn === undefined ? true : !!input.pulseOn),
       pulse: clamp(input.pulse, 40, 180, 60),
       pulseDepth: clamp(input.pulseDepth, 0, 0.25, 0.1),
-      accent: !!input.accent,
-      chord: !!input.chord,
+      accent: mode !== 'drone' && !!input.accent,
+      chord: mode !== 'drone' && !!input.chord,
       noise: NOISE_TYPES.filter(n => Array.isArray(input.noise) && input.noise.includes(n)),
       noiseGain: {},
       tempo: ['steady', 'golden'].includes(input.tempo) ? input.tempo : (input.preset === 'golden-lift' ? 'golden' : 'steady'),
+      sequence: input.sequence === 'aura' && mode === 'binaural' ? 'aura' : 'none',
       preset: typeof input.preset === 'string' ? input.preset : ''
     };
+    if (s.sequence === 'aura') {
+      s.carrier = 136; s.beat = 7.83; s.align = 'center';
+      if (s.minutes === 0) s.minutes = 10;
+    }
     for (const n of NOISE_TYPES) s.noiseGain[n] = clamp(input.noiseGain && input.noiseGain[n], 0, 0.4, n === 'rain' ? 0.1 : 0.08);
     const sum = s.noise.reduce((v, n) => v + s.noiseGain[n], 0);
     if (sum > 0.4) for (const n of s.noise) s.noiseGain[n] *= 0.4 / sum;
@@ -55,10 +60,27 @@
   }
 
   function frequencies(s) {
-    if (s.mode === 'isochronic') return {left: s.carrier, right: s.carrier, carrier: s.carrier};
+    if (s.mode === 'isochronic' || s.mode === 'drone') return {left: s.carrier, right: s.carrier, carrier: s.carrier};
     if (s.mode === 'binaural' && s.align === 'right') return {left: s.carrier, right: s.carrier + s.beat, carrier: s.carrier};
     const carrier = Math.max(s.carrier, 40 + s.beat / 2);
     return {left: carrier - s.beat / 2, right: carrier + s.beat / 2, carrier};
+  }
+
+  function sequenceInfo(s, elapsed, duration) {
+    if (s.sequence !== 'aura' || s.mode !== 'binaural' || duration <= 0) {
+      return {sequence: 'none', stage: null, stageName: null, stageIndex: 0,
+        stageCount: 0, stageElapsed: 0, stageRemaining: null, state: s};
+    }
+    const midpoint = duration / 2;
+    const first = elapsed < midpoint;
+    const stageStart = first ? 0 : midpoint;
+    const stageEnd = first ? midpoint : duration;
+    const stageName = first ? 'Ground' : 'Lift';
+    return {sequence: 'aura', stage: stageName, stageName, stageIndex: first ? 1 : 2,
+      stageCount: 2, stageElapsed: Math.max(0, Math.min(elapsed, stageEnd) - stageStart),
+      stageRemaining: Math.max(0, stageEnd - elapsed),
+      state: {...s, carrier: first ? 136 : 220, beat: first ? 7.83 : 10,
+        align: first ? 'center' : 'right'}};
   }
 
   function hold(param, at) {
@@ -256,6 +278,9 @@
     } else if (s.mode === 'monaural') {
       oscillator(f.left).connect(gain(ctx, 0.5, nodes)).connect(output);
       oscillator(f.right).connect(gain(ctx, 0.5, nodes)).connect(output);
+    } else if (s.mode === 'drone') {
+      // One unmodulated sine. The stereo sum duplicates this mono source.
+      oscillator(s.carrier).connect(output);
     } else {
       pulseAmp = gain(ctx, 0, nodes);
       oscillator(s.carrier).connect(pulseAmp).connect(output);
@@ -278,6 +303,10 @@
           if (Math.abs(next.beat - previous.beat) > 0.00001) setIsoShape(next.beat, time, false);
         }
       },
+      holdFrequencies(time) {
+        for (const source of oscillators) hold(source.frequency, time);
+        if (isoLFO) hold(isoLFO.frequency, time);
+      },
       stop(time) { for (const source of sources) stopSource(source, time); },
       dispose() { for (const source of sources) stopSource(source); for (const node of nodes) disconnect(node); }
     };
@@ -290,6 +319,7 @@
     const end = duration > 0 ? start + duration : Infinity;
     const finalStop = Number.isFinite(end) ? end + 0.05 : Infinity;
     const nodes = [], sources = [], modes = [], noises = {};
+    let stopping = false, disposed = false, stoppedAt = null;
     const sum = gain(ctx, 1, nodes);
     sum.channelCount = 2;
     sum.channelCountMode = 'explicit';
@@ -307,23 +337,51 @@
       // Include the final transport ramp in the stated duration, also when Fade=0.
       transport.gain.setValueCurveAtTime(makeCurve(1, 0), end - 1, 1);
     }
-    let activeMode = buildMode(ctx, state, start, sum, finalStop);
-    modes.push(activeMode);
-    const buffers = pulseBuffers(ctx);
-    const pulseSources = [];
-    const pulseDepth = gain(ctx, state.pulseOn ? -state.pulseDepth : 0, nodes);
-    const accentDepth = gain(ctx, state.pulseOn && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, nodes);
-    for (const [buffer, depth] of [[buffers.regular, pulseDepth], [buffers.accent, accentDepth]]) {
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-      source.playbackRate.value = state.pulse / 60;
-      source.connect(depth).connect(pulse.gain);
-      sources.push(source); nodes.push(source); pulseSources.push(source);
-      source.start(start);
-      if (Number.isFinite(finalStop)) source.stop(finalStop);
+    function sequenceAt(time) {
+      const position = Math.max(0, (stoppedAt === null ? time : Math.min(time, stoppedAt)) - start);
+      return sequenceInfo(state, position, duration);
     }
+    let activeMode = buildMode(ctx, sequenceAt(start).state, start, sum, finalStop);
+    modes.push(activeMode);
+
+    function scheduleSequence(time, initial) {
+      if (state.sequence !== 'aura' || activeMode.mode !== 'binaural' || duration <= 0) return;
+      const midpoint = start + duration / 2;
+      const first = frequencies(sequenceInfo(state, 0, duration).state);
+      const second = frequencies(sequenceInfo(state, duration, duration).state);
+      for (const [index, channel] of ['left', 'right'].entries()) {
+        const param = activeMode.oscillators[index].frequency;
+        if (!initial) hold(param, time);
+        if (time < midpoint) {
+          if (initial) param.setValueAtTime(first[channel], time);
+          else {
+            // Re-enabling a sequence reaches its current stage continuously.
+            param.setValueAtTime(param.value, time);
+            param.linearRampToValueAtTime(first[channel], Math.min(time + 0.25, midpoint));
+          }
+          // The entire transition is on the audio clock: neither background tab
+          // throttling nor an offline render needs a JS timer to change stage.
+          param.setValueAtTime(first[channel], midpoint);
+          param.linearRampToValueAtTime(second[channel], midpoint + 0.25);
+        } else if (initial) param.setValueAtTime(second[channel], time);
+        else param.setTargetAtTime(second[channel], time, 0.05);
+      }
+    }
+    scheduleSequence(start, true);
+
+    const pulseSources = [];
+    const pulseDepth = gain(ctx, 0, nodes);
+    const accentDepth = gain(ctx, 0, nodes);
+    let pulseCleanupTimer = null, chordCleanupTimer = null;
     let tempoAuto = state.tempo === 'golden';
+
+    function removeSource(source) {
+      stopSource(source); disconnect(source);
+      for (const list of [sources, nodes]) {
+        const index = list.indexOf(source);
+        if (index >= 0) list.splice(index, 1);
+      }
+    }
 
     function tempoAt(time) {
       if (!tempoAuto) return state.pulse;
@@ -350,18 +408,73 @@
         }
       }
     }
-    scheduleTempo(start, true);
-
     const chords = [];
-    for (const hz of [277, 330]) {
-      const source = ctx.createOscillator();
-      source.type = 'sine'; source.frequency.value = hz;
-      const level = gain(ctx, state.chord ? 0.12 : 0, nodes);
-      source.connect(level).connect(sum);
-      source.start(start);
-      if (Number.isFinite(finalStop)) source.stop(finalStop);
-      sources.push(source); nodes.push(source); chords.push(level);
+
+    function syncPulse(time, previous) {
+      const enabled = state.pulseOn && state.mode !== 'drone';
+      const tempoChanged = !previous || state.pulse !== previous.pulse || state.tempo !== previous.tempo;
+      tempoAuto = state.tempo === 'golden';
+      target(pulseDepth.gain, enabled ? -state.pulseDepth : 0, time);
+      target(accentDepth.gain, enabled && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, time);
+      let created = false;
+      if (enabled) {
+        clearTimeout(pulseCleanupTimer); pulseCleanupTimer = null;
+        if (!pulseSources.length) {
+          const buffers = pulseBuffers(ctx);
+          for (const [buffer, depth] of [[buffers.regular, pulseDepth], [buffers.accent, accentDepth]]) {
+            const source = ctx.createBufferSource();
+            source.buffer = buffer; source.loop = true;
+            source.playbackRate.value = tempoAt(time) / 60;
+            source.connect(depth).connect(pulse.gain);
+            sources.push(source); nodes.push(source); pulseSources.push(source);
+            source.start(time);
+            if (Number.isFinite(finalStop)) source.stop(finalStop);
+          }
+          created = true;
+        }
+      } else if (pulseSources.length && !pulseCleanupTimer) {
+        // Audio-rate gains fade the modulation out immediately. This timeout
+        // only reclaims silent nodes; it is never needed to sustain audio.
+        pulseCleanupTimer = setTimeout(() => {
+          pulseCleanupTimer = null;
+          if (disposed || state.pulseOn && state.mode !== 'drone') return;
+          for (const source of pulseSources.splice(0)) removeSource(source);
+        }, 400);
+      }
+      if (created || tempoChanged) scheduleTempo(time, created);
     }
+
+    function syncChord(time) {
+      const enabled = state.chord && state.mode !== 'drone';
+      if (enabled) {
+        clearTimeout(chordCleanupTimer); chordCleanupTimer = null;
+        if (!chords.length) {
+          for (const hz of [277, 330]) {
+            const source = ctx.createOscillator();
+            source.type = 'sine'; source.frequency.value = hz;
+            const level = gain(ctx, 0, nodes);
+            source.connect(level).connect(sum);
+            source.start(time);
+            if (Number.isFinite(finalStop)) source.stop(finalStop);
+            sources.push(source); nodes.push(source); chords.push({source, level});
+          }
+        }
+      }
+      for (const item of chords) target(item.level.gain, enabled ? 0.12 : 0, time);
+      if (!enabled && chords.length && !chordCleanupTimer) {
+        chordCleanupTimer = setTimeout(() => {
+          chordCleanupTimer = null;
+          if (disposed || state.chord && state.mode !== 'drone') return;
+          for (const item of chords.splice(0)) {
+            removeSource(item.source); disconnect(item.level);
+            const index = nodes.indexOf(item.level);
+            if (index >= 0) nodes.splice(index, 1);
+          }
+        }, 400);
+      }
+    }
+    syncPulse(start, null);
+    syncChord(start);
 
     function syncNoise(time) {
       for (const kind of NOISE_TYPES) {
@@ -382,13 +495,12 @@
     }
     syncNoise(start);
 
-    let stopping = false, disposed = false;
     return {
       ctx, start, end, duration, session, sum, volume, transport, envelope, duck, limiter,
       get state() { return state; },
       get mode() { return activeMode; },
       get tempoAuto() { return tempoAuto; },
-      tempoAt,
+      tempoAt, sequenceAt,
       update(inputState) {
         if (stopping || disposed) return;
         const next = normalize(inputState), previous = state;
@@ -397,7 +509,7 @@
         target(volume.gain, state.volume, time);
         if (state.mode !== previous.mode) {
           const old = activeMode;
-          const replacement = buildMode(ctx, state, time + 0.005, sum, finalStop, 0);
+          const replacement = buildMode(ctx, sequenceAt(time).state, time + 0.005, sum, finalStop, 0);
           const transition = ctx.currentTime;
           const inCurve = Float32Array.from({length: 129}, (_, i) => Math.sin(i / 128 * Math.PI / 2));
           const outCurve = Float32Array.from({length: 129}, (_, i) => Math.cos(i / 128 * Math.PI / 2));
@@ -414,19 +526,26 @@
           }, 300);
           activeMode = replacement;
           modes.push(replacement);
-        } else activeMode.update(state, time, previous);
-        target(pulseDepth.gain, state.pulseOn ? -state.pulseDepth : 0, time);
-        target(accentDepth.gain, state.pulseOn && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, time);
-        if (state.pulse !== previous.pulse || state.tempo !== previous.tempo) {
-          tempoAuto = state.tempo === 'golden';
-          scheduleTempo(time, false);
+          scheduleSequence(transition, true);
+        } else if (state.sequence !== previous.sequence) {
+          if (state.sequence === 'aura') scheduleSequence(time, false);
+          else activeMode.update(state, time, previous); // Cancels any pending stage.
+        } else if (state.sequence !== 'aura' &&
+          (state.carrier !== previous.carrier || state.beat !== previous.beat || state.align !== previous.align)) {
+          activeMode.update(state, time, previous);
         }
-        for (const level of chords) target(level.gain, state.chord ? 0.12 : 0, time);
+        syncPulse(time, previous);
+        syncChord(time);
         syncNoise(time);
       },
       fadeStop(time) {
         if (stopping || disposed) return time;
         stopping = true;
+        stoppedAt = time;
+        // A manual stop freezes any pending sequence/tempo change while the
+        // transport fades out, including a stop immediately before a midpoint.
+        activeMode.holdFrequencies(time);
+        for (const source of pulseSources) hold(source.playbackRate, time);
         hold(transport.gain, time);
         const level = transport.gain.value;
         transport.gain.setValueCurveAtTime(makeCurve(level, 0), time, 1);
@@ -437,6 +556,7 @@
       dispose() {
         if (disposed) return;
         disposed = true;
+        clearTimeout(pulseCleanupTimer); clearTimeout(chordCleanupTimer);
         for (const source of sources) stopSource(source);
         for (const mode of modes) mode.dispose();
         for (const node of nodes) disconnect(node);
@@ -539,14 +659,15 @@
     getSnapshot() {
       const graph = this.graph;
       const s = graph ? graph.state : this.lastState;
-      const f = frequencies(s);
+      const elapsed = graph ? Math.max(0, this.context.currentTime - graph.start) : 0;
+      const total = graph ? graph.duration : s.minutes * 60;
+      const info = graph ? graph.sequenceAt(this.context.currentTime) : sequenceInfo(s, 0, total);
+      const f = frequencies(info.state);
       let left = f.left, right = f.right;
       if (graph && graph.mode.oscillators.length) {
         left = graph.mode.oscillators[0].frequency.value;
         right = graph.mode.oscillators[1] ? graph.mode.oscillators[1].frequency.value : left;
       }
-      const elapsed = graph ? Math.max(0, this.context.currentTime - graph.start) : 0;
-      const total = graph ? graph.duration : s.minutes * 60;
       const remaining = total > 0 ? Math.max(0, total - elapsed) : null;
       const phases = graph ? graph.session : s;
       let phase = this.playing ? 'Core' : 'Ready', phaseRemaining = remaining;
@@ -556,9 +677,16 @@
         else { phase = 'Fade'; phaseRemaining = Math.max(0, total - elapsed); }
       }
       if (this.stopping) phase = 'Stopping';
+      const activeBeat = s.mode === 'drone' ? 0 : s.mode === 'isochronic' ? s.beat : Math.max(0, right - left);
+      const activeAlign = s.mode === 'binaural' ? info.state.align : 'center';
+      const activeCarrier = s.mode === 'drone' || s.mode === 'isochronic' || activeAlign === 'right' ? left : (left + right) / 2;
       return {playing: this.playing, stopping: this.stopping, elapsed, remaining, duration: total,
         phase, phaseRemaining, left, right, pulse: graph ? graph.tempoAt(this.context.currentTime) : s.pulse,
-        contextState: this.context ? this.context.state : 'uninitialized', tempoAuto: !!(graph && graph.tempoAuto)};
+        contextState: this.context ? this.context.state : 'uninitialized', tempoAuto: !!(graph && graph.tempoAuto),
+        sequence: info.sequence, stage: info.stage, stageName: info.stageName,
+        stageIndex: info.stageIndex, stageCount: info.stageCount,
+        stageElapsed: info.stageElapsed, stageRemaining: info.stageRemaining,
+        activeBeat, activeCarrier, activeAlign};
     }
 
     async testChannel(side) {

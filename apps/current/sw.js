@@ -1,5 +1,5 @@
 /* Cache the portable app for subsequent offline visits. No analytics or remote calls. */
-const CACHE = 'current-static-v1-20261114';
+const CACHE = 'current-static-v2-20261115-presets';
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.add(new Request('./index.html', {cache:'reload'}))).then(() => self.skipWaiting()));
 });

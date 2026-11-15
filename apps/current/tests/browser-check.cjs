@@ -21,6 +21,15 @@ const results = [];
   page.on('dialog',dialog=>dialog.accept());
   const base='file://'+path.join(root,'index.html');
   const visit=async(query='')=>{await page.goto(base+query);await page.waitForFunction(()=>!!window.CurrentApp);};
+  // The card library is deliberately collapsed; use the primary native selector.
+  // A preset change may fade existing playback before applying its new state.
+  const selectPreset=async(slug)=>{
+    await page.locator('#preset-select').selectOption(slug);
+    await page.waitForFunction(value=>{
+      const select=document.getElementById('preset-select');
+      return !select.disabled&&select.value===value&&CurrentApp.getState().preset===value;
+    },slug);
+  };
   const numeric=async(id,value)=>{await page.locator('#'+id).fill(String(value));await page.locator('#'+id).press('Enter');await page.waitForTimeout(300);};
   async function check(name,fn){try{const detail=await fn();results.push({name,status:'PASS',detail});console.log('PASS '+name+(detail?' '+JSON.stringify(detail):''));}catch(e){results.push({name,status:'FAIL',error:e.message});console.log('FAIL '+name+' '+e.message);}}
   await check('Initial silent state and default frequencies',async()=>{
@@ -31,11 +40,11 @@ const results = [];
     assert.equal(await page.locator('#volume').inputValue(),'0.25');
   });
   await check('Preset alignment and 10-minute phase variant',async()=>{
-    await page.locator('[data-preset="golden-lift"]').click();
+    await selectPreset('golden-lift');
     assert.match(await page.locator('#left-frequency').innerText(),/220\.0/);assert.match(await page.locator('#right-frequency').innerText(),/230\.0/);
     await page.locator('#advanced summary').click();await page.locator('#center-beat').check();
     assert.match(await page.locator('#left-frequency').innerText(),/215\.0/);assert.match(await page.locator('#right-frequency').innerText(),/225\.0/);
-    await page.locator('[data-preset="calm-current"]').click();await page.locator('[data-minutes="10"]').click();
+    await selectPreset('calm-current');await page.locator('[data-minutes="10"]').click();
     assert.equal(await page.locator('#settle-readout').innerText(),'1:30');assert.equal(await page.locator('#core-readout').innerText(),'7:00');
   });
   await check('Volume, beat, carrier and URL input clamps',async()=>{
@@ -57,10 +66,26 @@ const results = [];
     await page.keyboard.press('Shift+ArrowRight');assert.equal(await page.locator('#beat').inputValue(),'5');
     await page.keyboard.press('Alt+ArrowRight');assert.equal(await page.locator('#beat').inputValue(),'5.01');
     await page.locator('#carrier-number').focus();await page.keyboard.press('m');assert.equal(await page.locator('[data-mode="binaural"]').getAttribute('aria-pressed'),'true');await page.keyboard.press('Escape');
+    await page.locator('h1').click();
+    for(const mode of ['isochronic','monaural','drone','binaural']){
+      await page.keyboard.press('m');
+      assert.equal(await page.locator('[data-mode="'+mode+'"]').getAttribute('aria-pressed'),'true');
+      assert.equal(await page.evaluate(()=>CurrentApp.getState().mode),mode);
+      if(mode==='drone'){
+        assert.equal(await page.locator('#beat').inputValue(),'0');
+        assert.equal(await page.locator('#beat').isDisabled(),true);
+        assert.equal(await page.locator('#carrier').getAttribute('min'),'40');
+        const before=await page.evaluate(()=>CurrentApp.getState().beat);
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.evaluate(()=>CurrentApp.getState().beat),before);
+      }
+    }
+    assert.equal(await page.locator('#beat').isDisabled(),false);
+    assert.equal(await page.locator('#carrier').getAttribute('min'),'60');
     await page.locator('#open-shortcuts').click();assert.equal(await page.locator('#shortcuts-dialog').isVisible(),true);await page.keyboard.press('Escape');
   });
   await check('Safe local preset save, reload, delete and Golden tempo',async()=>{
-    await visit();await page.locator('[data-preset="golden-lift"]').click();
+    await visit();await selectPreset('golden-lift');
     await page.locator('#save-preset').click();await page.locator('#preset-name').fill('Evening <quiet>');await page.locator('#save-form button[type=submit]').click();
     assert.equal(await page.locator('[data-user-preset]').last().innerText(),'Evening <quiet>');
     assert.equal(await page.evaluate(()=>CurrentApp.getState().tempo),'golden');

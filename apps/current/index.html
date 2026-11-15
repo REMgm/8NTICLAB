@@ -27,6 +27,12 @@
 /* Legibility and input comfort at every viewport. */
 .hint,.site-footer>p,.safety-note p{font-size:12px}.ear-label{font-size:10px}.tone-readouts>div{flex-direction:column;align-items:flex-start;gap:3px}.tone-readouts{gap:28px}.readout-divider{height:32px}.player-hints{font-size:11px}.range-caption,.band-honesty,.reference-tone>span{font-size:11px}.preset-copy>span,.toggle-label small,.section-description{font-size:12px}.preset-copy small,.phase-values span,.phase-values strong,.small-label{font-size:11px}.preset-copy strong,.toggle-label strong{font-size:14px}.delete-preset{width:44px;min-height:44px}.reference-tone{flex-wrap:wrap}.reference-tone .text-button{font-size:11px}.footer-brand{font-size:12px}.footer-bottom{font-size:11px}.noise-layer{padding-top:14px;padding-bottom:14px}.control-heading,.duration-heading{font-size:13px}.mode-selector button{font-size:13px}.mode-hint{font-size:12px}.bands strong{font-size:12px}.bands span{font-size:10px}.advanced-group .hint{font-size:12px}
 @media(max-width:767px){input[type=text],input[type=number],select,.number-unit input,.volume-number input,dialog input:not([type=range]),dialog select{font-size:16px}.number-unit input{width:65px}.minutes-unit input{width:36px}.volume-number input{width:30px}.tone-readouts{gap:24px}.player-visual{min-height:294px}.player-hints{font-size:10px}.mode-selector button{font-size:12px}.hint{font-size:12px}.reference-tone>span{font-size:10px}.range-caption{font-size:10px}.section-heading h2{font-size:16px}.footer-heading{align-items:flex-start}.footer-brand{font-size:11px}.footer-heading .text-button{font-size:11px}.footer-bottom{font-size:10px}}
+
+/* Preset collection and session cues. */
+.mode-selector{grid-template-columns:repeat(4,minmax(0,1fr))}.mode-selector button{font-size:12px;padding:0 3px}.preset-select{width:100%;min-height:48px;border:1px solid #4c6669;border-radius:8px;background:#101a20;color:var(--text);font-size:14px;padding:10px 32px 10px 12px;text-overflow:ellipsis}.preset-preview{margin:16px 0 18px}.preset-purpose{display:inline-flex;font-size:11px;letter-spacing:.04em;color:var(--accent);padding:3px 8px;border:1px solid #3c5b5b;border-radius:30px;background:#1a2b2e}.preset-preview>p:not(.hint){font-size:14px;line-height:1.55;margin-top:10px}.preset-preview .hint{margin-top:7px}.preset-library{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.preset-library summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;font-size:12px;color:var(--muted);cursor:pointer}.preset-library summary::-webkit-details-marker{display:none}.preset-library summary>span{color:var(--accent);font-size:20px}.preset-library[open] summary>span{transform:rotate(45deg)}.preset-library .preset-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 0 14px}.preset-library .preset-card{padding:12px 10px;min-height:104px;align-items:flex-start}.preset-library .preset-copy{gap:4px;overflow-wrap:anywhere}.preset-library .preset-copy strong{font-size:12px;line-height:1.35}.preset-library .preset-copy>span{font-size:11px;line-height:1.4}.preset-library .preset-copy small{font-size:10px;line-height:1.5;margin-top:auto}.duration-options [data-minutes="0"]{grid-column:span 2}.breathing-guide{display:flex;align-items:center;gap:12px;padding:16px 0 0;margin-top:16px;border-top:1px solid var(--line);--breath-scale:.72}.breath-orbit{width:38px;height:38px;border-radius:50%;border:1px solid #477574;display:grid;place-items:center;flex-shrink:0}.breath-orbit span{width:30px;height:30px;border-radius:50%;background:var(--accent);opacity:.65;transform:scale(var(--breath-scale));transition:transform .2s linear}.breath-copy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.breath-copy strong{font-size:14px;font-weight:550;color:var(--accent)}.breath-copy span{font-size:11px;color:var(--muted);line-height:1.5}.breathing-guide.exhale .breath-copy strong{color:var(--text)}#breath-count{font-family:var(--mono);font-size:16px;white-space:nowrap;color:var(--text)}.sequence-guide{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-top:15px;margin-top:16px;border-top:1px solid var(--line)}.sequence-guide>div{display:flex;flex-direction:column}.sequence-guide .eyebrow{font-size:9px;margin-bottom:5px}.sequence-guide strong{font-size:14px;font-weight:550}.sequence-guide>span{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}.reduced-motion .breath-orbit span{transform:none}.player-top{flex-wrap:wrap}.player-top .state-label{white-space:nowrap}.minutes-unit input{width:38px}
+@media(max-width:767px){.preset-select{font-size:16px}.preset-library summary{font-size:13px}.preset-library .preset-copy strong{font-size:13px}.mode-selector button{font-size:11px}.breath-copy span{font-size:11px}}
+@media(max-width:359px){.mode-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.breathing-guide{gap:9px}.breath-orbit{width:30px;height:30px}.breath-orbit span{width:24px;height:24px}#breath-count{font-size:14px}.breath-copy strong{font-size:13px}.sequence-guide{align-items:flex-start;flex-direction:column;gap:6px}.sequence-guide>span{text-align:left}}
+@media(prefers-reduced-motion:reduce){.breath-orbit span{transform:none}}
 </style>
 </head>
 <body>
@@ -74,16 +80,22 @@
               <div class="player-hints"><span id="volume-help">Gentle by default. Capped at 60%.</span><span id="wake-hint"></span></div>
               <p id="ios-hint" class="hint" hidden>Tap Start with the silent switch off and the volume up.</p>
               <p id="audio-error" role="alert" class="inline-error" hidden></p>
+              <div class="breathing-guide" id="breathing-guide" hidden aria-label="Four counts in, six counts out breathing guide">
+                <div class="breath-orbit" aria-hidden="true"><span></span></div>
+                <div class="breath-copy"><strong id="breath-phase">In 4 · out 6</strong><span>One count per second. Follow your own comfort.</span></div>
+                <output id="breath-count" aria-label="Breathing count" aria-live="off">Ready</output>
+              </div>
+              <div class="sequence-guide" id="sequence-guide" hidden><div><span class="eyebrow">TWO PART SESSION</span><strong id="sequence-stage">1 / 2 · Ground</strong></div><span id="sequence-next">Lift begins at 5:00</span></div>
             </div>
           </section>
           <section class="card tuning-card" aria-labelledby="tuning-title">
             <div class="section-heading"><h2 id="tuning-title">Shape your sound</h2><button class="text-button" id="open-shortcuts" aria-label="Show keyboard shortcuts" type="button"><kbd>?</kbd> Shortcuts</button></div>
             <div class="mode-selector" role="group" aria-label="Audio mode">
-              <button type="button" data-mode="binaural" aria-pressed="true">Binaural</button><button type="button" data-mode="isochronic" aria-pressed="false">Isochronic</button><button type="button" data-mode="monaural" aria-pressed="false">Monaural</button>
+              <button type="button" data-mode="binaural" aria-pressed="true">Binaural</button><button type="button" data-mode="isochronic" aria-pressed="false">Isochronic</button><button type="button" data-mode="monaural" aria-pressed="false">Monaural</button><button type="button" data-mode="drone" aria-pressed="false">Pure tone</button>
             </div>
             <p class="mode-hint" id="mode-help"><svg class="icon"><use href="#i-headphones"/></svg><span>Headphones required. A different tone in each ear.</span></p>
-            <div class="control-block"><div class="control-heading"><label for="carrier">Carrier frequency</label><div class="number-unit"><label class="sr-only" for="carrier-number">Carrier frequency in hertz</label><input id="carrier-number" type="text" inputmode="decimal" value="110.0" maxlength="12"><span>Hz</span></div></div><input id="carrier" type="range" min="60" max="600" step="0.1" value="110" aria-describedby="carrier-help"><div class="range-caption"><span>60 Hz</span><span id="carrier-help">The pitch you hear</span><span>600 Hz</span></div></div>
-            <div class="control-block"><div class="control-heading"><label for="beat">Beat offset</label><div class="number-unit"><label class="sr-only" for="beat-number">Beat offset in hertz</label><input id="beat-number" type="text" inputmode="decimal" value="4.00" maxlength="12"><span>Hz</span></div></div><input id="beat" type="range" min="0.5" max="40" step="0.01" value="4" aria-describedby="beat-help"><div class="range-caption"><span>0.5 Hz</span><span id="beat-max">40 Hz</span></div><p id="beat-help" class="hint">Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.</p></div>
+            <div class="control-block"><div class="control-heading"><label for="carrier" id="carrier-control-label">Carrier frequency</label><div class="number-unit"><label class="sr-only" for="carrier-number">Carrier frequency in hertz</label><input id="carrier-number" type="text" inputmode="decimal" value="110.0" maxlength="12"><span>Hz</span></div></div><input id="carrier" type="range" min="60" max="600" step="0.1" value="110" aria-describedby="carrier-help"><div class="range-caption"><span id="carrier-min">60 Hz</span><span id="carrier-help">The pitch you hear</span><span>600 Hz</span></div></div>
+            <div class="control-block" id="beat-control"><div class="control-heading"><label for="beat" id="beat-control-label">Beat offset</label><div class="number-unit"><label class="sr-only" for="beat-number">Beat offset in hertz</label><input id="beat-number" type="text" inputmode="decimal" value="4.00" maxlength="12"><span>Hz</span></div></div><input id="beat" type="range" min="0.5" max="40" step="0.01" value="4" aria-describedby="beat-help"><div class="range-caption"><span id="beat-min">0.5 Hz</span><span id="beat-max">40 Hz</span></div><p id="beat-help" class="hint">Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.</p></div>
             <p id="carrier-warning" class="hint attention" hidden></p>
             <div class="bands" role="group" aria-label="Frequency band shortcuts"><button type="button" data-beat="2.5" title="Deep rest"><strong>Delta</strong><span>2.50 Hz</span></button><button type="button" data-beat="6" title="Quiet, inward attention"><strong>Theta</strong><span>6.00 Hz</span></button><button type="button" data-beat="10" title="Relaxed alertness"><strong>Alpha</strong><span>10.00 Hz</span></button><button type="button" data-beat="18" title="Active attention"><strong>Beta</strong><span>18.00 Hz</span></button><button type="button" data-beat="40" title="Intense concentration"><strong>Gamma</strong><span>40.00 Hz</span></button></div>
             <div class="reference-tone"><button class="text-button" data-beat="7.83" type="button">Schumann · 7.83 Hz</button><span>A familiar reference, not a therapy.</span></div>
@@ -93,13 +105,13 @@
         <aside class="secondary-column" aria-label="Session and sound layers">
           <section class="card session-card" aria-labelledby="session-heading">
             <div class="section-heading"><h2 id="session-heading">Your session</h2><button class="text-button" id="save-preset" type="button">＋ Save</button></div>
-            <div class="preset-options" role="group" aria-label="Built-in presets">
-              <button class="preset-card calm selected" type="button" data-preset="calm-current" aria-pressed="true"><span class="preset-art"><svg class="icon"><use href="#i-wave"/></svg></span><span class="preset-copy"><strong>Calm Current</strong><span>A low, even hold for settling</span><small>4 Hz · 110 Hz · 14 min</small></span><svg class="icon preset-check"><use href="#i-check"/></svg></button>
-              <button class="preset-card golden" type="button" data-preset="golden-lift" aria-pressed="false"><span class="preset-art"><svg class="icon"><use href="#i-sun"/></svg></span><span class="preset-copy"><strong>Golden Lift</strong><span>A brighter, major-key lift</span><small>10 Hz · A3 · 15 min</small></span><svg class="icon preset-check"><use href="#i-check"/></svg></button>
-            </div>
+            <label class="form-label" for="preset-select">Choose your next moment</label>
+            <select id="preset-select" class="preset-select" aria-describedby="preset-guidance"><option value="calm-current">Calm Current</option></select>
+            <div class="preset-preview"><span id="preset-purpose" class="preset-purpose">Calm</span><p id="preset-description">A low, even hold for settling.</p><p id="preset-guidance" class="hint">Use headphones. Keep the volume comfortable.</p></div>
+            <details id="preset-library" class="preset-library"><summary>Explore all 12 presets <span aria-hidden="true">＋</span></summary><div id="built-in-presets" class="preset-options" role="group" aria-label="Built-in presets"></div></details>
             <div id="user-presets" class="user-presets" aria-label="Saved presets"></div>
             <div class="duration-heading"><label for="minutes">Session length</label><div class="number-unit minutes-unit"><input id="minutes" type="text" inputmode="numeric" value="14" maxlength="3" aria-label="Session length in minutes"><span>min</span></div></div>
-            <div class="duration-options" role="group" aria-label="Session length shortcuts"><button type="button" data-minutes="10">10 min</button><button type="button" data-minutes="14" class="selected">14 min</button><button type="button" data-minutes="20">20 min</button><button type="button" data-minutes="30">30 min</button></div>
+            <div class="duration-options" role="group" aria-label="Session length shortcuts"><button type="button" data-minutes="10">10 min</button><button type="button" data-minutes="14" class="selected">14 min</button><button type="button" data-minutes="15">15 min</button><button type="button" data-minutes="20">20 min</button><button type="button" data-minutes="25">25 min</button><button type="button" data-minutes="30">30 min</button><button type="button" data-minutes="0">Untimed</button></div>
             <div class="phase-track" aria-hidden="true"><span class="phase-settle"></span><span class="phase-core"></span><span class="phase-fade"></span></div>
             <div class="phase-values"><div><span>Settle</span><strong id="settle-readout">2:00</strong></div><div><span>Core</span><strong id="core-readout">10:00</strong></div><div><span>Fade</span><strong id="fade-readout">2:00</strong></div></div>
             <p class="hint" id="next-session-hint" hidden>Timing changes apply to your next session.</p>
@@ -118,15 +130,15 @@
           <div class="advanced-grid">
             <div class="advanced-group"><h3>A gentle pulse</h3><div class="toggle-row"><label for="pulse-on">BPM pulse</label><label class="switch"><input type="checkbox" id="pulse-on" checked><span></span></label></div><div class="control-heading"><label for="pulse">Tempo</label><div class="number-unit"><label class="sr-only" for="pulse-number">Tempo in beats per minute</label><input id="pulse-number" type="text" inputmode="numeric" value="60" maxlength="3"><span>BPM</span></div></div><input type="range" min="40" max="180" step="1" value="60" id="pulse"><p class="hint" id="tempo-note">A slow swell, separate from the beat offset.</p><div class="control-heading compact"><label for="pulse-depth">Pulse depth</label><output for="pulse-depth" id="pulse-depth-value">10%</output></div><input type="range" min="0" max="0.25" step="0.01" value="0.1" id="pulse-depth"><div class="toggle-row"><label for="accent">Accent every fourth beat</label><label class="switch"><input type="checkbox" id="accent"><span></span></label></div><div class="toggle-row"><label for="chord">Warm chord layer <small>277 + 330 Hz</small></label><label class="switch"><input type="checkbox" id="chord"><span></span></label></div></div>
             <div class="advanced-group"><h3>Your session envelope</h3><div class="form-row"><label for="settle">Settle time</label><div class="number-unit"><input id="settle" type="text" inputmode="numeric" value="120" maxlength="3"><span>sec</span></div></div><div class="form-row"><label for="fade">Fade time</label><div class="number-unit"><input id="fade" type="text" inputmode="numeric" value="120" maxlength="3"><span>sec</span></div></div><p class="hint">Fades are included in the total session. Oversized fades are shortened proportionally.</p><div class="toggle-row"><label for="center-beat">Centre the beat <small id="align-help">Equal distance from the carrier</small></label><label class="switch"><input type="checkbox" id="center-beat" checked><span></span></label></div><div class="ear-check"><span>Check your headphones</span><div><button class="button-outline" type="button" id="test-left">Test L</button><button class="button-outline" type="button" id="test-right">Test R</button></div><p class="hint">A half-second tone in one ear at a time.</p></div></div>
-            <div class="advanced-group"><h3>Make yourself comfortable</h3><div class="toggle-row"><label for="wake-lock">Keep screen awake <small>While playing and visible</small></label><label class="switch"><input type="checkbox" id="wake-lock" checked><span></span></label></div><div class="toggle-row"><label for="reduce-motion">Reduce motion <small>Also respects your device setting</small></label><label class="switch"><input type="checkbox" id="reduce-motion"><span></span></label></div><p class="hint">Your presets and preferences stay in this browser. Shared links contain sound settings only.</p><button class="button-outline download-app" type="button" id="download-app"><svg class="icon"><use href="#i-download"/></svg>Download offline copy</button><p class="hint">One HTML file. Open it in a desktop browser, even without a connection.</p></div>
+            <div class="advanced-group"><h3>Make yourself comfortable</h3><div class="toggle-row"><label for="breathing-on">Breathing guide <small>4 counts in · 6 counts out</small></label><label class="switch"><input type="checkbox" id="breathing-on"><span></span></label></div><div class="toggle-row"><label for="wake-lock">Keep screen awake <small>While playing and visible</small></label><label class="switch"><input type="checkbox" id="wake-lock" checked><span></span></label></div><div class="toggle-row"><label for="reduce-motion">Reduce motion <small>Also respects your device setting</small></label><label class="switch"><input type="checkbox" id="reduce-motion"><span></span></label></div><p class="hint">Your presets and preferences stay in this browser. Shared links contain sound settings only.</p><button class="button-outline download-app" type="button" id="download-app"><svg class="icon"><use href="#i-download"/></svg>Download offline copy</button><p class="hint">One HTML file. Open it in a desktop browser, even without a connection.</p></div>
           </div>
         </details>
       </section>
-      <section class="safety-note" id="safety-note" aria-label="Before you listen"><div><strong>A moment before you listen.</strong><p>Keep the volume low. Skip pulsing audio if you have epilepsy or a seizure disorder unless your clinician agrees. Never listen while driving or operating machinery.</p></div><button class="button-outline" type="button" id="dismiss-safety">Got it</button></section>
+      <section class="safety-note" id="safety-note" aria-label="Before you listen"><div><strong>Keep it comfortable.</strong><p>Use headphones for binaural sessions. Keep the volume comfortable, and never listen while driving.</p></div><button class="button-outline" type="button" id="dismiss-safety">Got it</button></section>
       <footer class="site-footer">
         <div class="footer-heading"><div class="footer-brand"><svg class="icon"><use href="#i-wave"/></svg><span>A small ritual. Your own pace.</span></div><button class="text-button" id="open-about" type="button">About the sound <span aria-hidden="true">↗</span></button></div>
-        <p>For personal listening, not medical treatment. Evidence for effects on focus, mood or brain activity is mixed. Frequency labels are not promises.</p>
-        <p>Listen well below conversation level. Long, loud sessions can damage hearing. If you have epilepsy or a seizure disorder, avoid pulsing audio unless a clinician agrees. Never use while driving or operating machinery. If pregnant or using a pacemaker or implanted device, check with a clinician first; we do not assert safety in these cases. Not designed for children.</p>
+        <p>Preset names describe listening intentions. Individual experiences vary.</p>
+        <p>Headphones for binaural sessions. Comfortable volume. Never while driving.</p>
         <p>On iPhone, the silent switch may mute browser audio. Your phone may also pause audio in the background.</p>
         <div class="footer-bottom"><span>Made for time that feels like yours.</span><span>Private by design · Plays offline</span></div>
       </footer>
@@ -138,7 +150,7 @@
   <dialog id="save-dialog" aria-labelledby="save-title"><div class="dialog-heading"><h2 id="save-title">Keep this sound</h2><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><p class="dialog-copy">Save your settings on this device. You can also share them with a link.</p><form id="save-form"><label class="form-label" for="preset-name">Preset name</label><input id="preset-name" type="text" maxlength="40" autocomplete="off" placeholder="My evening sound" required><p class="hint">Up to 24 personal presets, stored only in this browser.</p><p id="save-error" class="inline-error" role="alert" hidden></p><button type="submit" class="button-primary">Save preset</button></form></dialog>
   <dialog id="export-dialog" aria-labelledby="export-title"><div class="dialog-heading"><h2 id="export-title">Take your sound with you</h2><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><p class="dialog-copy">Render this session as a stereo WAV, directly on your device.</p><form id="export-form"><div class="export-fields"><div><label class="form-label" for="export-rate">Sample rate</label><select id="export-rate"><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option></select></div><div><label class="form-label" for="export-depth">Bit depth</label><select id="export-depth"><option value="16">16-bit PCM</option><option value="24">24-bit PCM</option></select></div><div><label class="form-label" for="export-minutes">Duration (minutes)</label><input id="export-minutes" type="number" min="1" max="90" value="14" required></div></div><p class="hint" id="export-size"></p><p class="hint">Long exports use substantial memory. Keep this tab open. Shorter sessions work best on phones.</p><div id="export-progress" hidden><progress id="export-progress-bar" aria-label="Audio export progress" max="100" value="0"></progress><p id="export-progress-label" class="hint" aria-live="polite">Preparing audio…</p></div><p id="export-error" class="inline-error" role="alert" hidden></p><div class="dialog-actions"><button class="button-primary" id="export-submit" type="submit">Export WAV</button><button class="button-outline" id="cancel-export" type="button" hidden>Cancel export</button></div></form></dialog>
   <dialog id="shortcuts-dialog" aria-labelledby="shortcuts-title"><div class="dialog-heading"><h2 id="shortcuts-title">Stay in your flow</h2><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><p class="dialog-copy">Keyboard shortcuts pause while you type in a field.</p><dl class="shortcuts"><dt><kbd>Space</kbd></dt><dd>Start / Stop</dd><dt><kbd>Esc</kbd></dt><dd>Stop or close dialog</dd><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Carrier ±1 Hz</dd><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Beat ±0.10 Hz</dd><dt><kbd>Shift</kbd> + arrows</dt><dd>10× the change</dd><dt><kbd>Alt</kbd> + arrows</dt><dd>One tenth the change</dd><dt><kbd>M</kbd> / <kbd>P</kbd></dt><dd>Cycle mode / toggle pulse</dd><dt><kbd>[</kbd> <kbd>]</kbd> or <kbd>,</kbd> <kbd>.</kbd></dt><dd>Volume ±5%</dd><dt><kbd>1</kbd> / <kbd>2</kbd></dt><dd>Calm Current / Golden Lift</dd><dt><kbd>L</kbd> / <kbd>R</kbd></dt><dd>Left / right channel test</dd><dt><kbd>C</kbd></dt><dd>Copy session link</dd><dt><kbd>?</kbd></dt><dd>This shortcuts sheet</dd></dl></dialog>
-  <dialog id="about-dialog" aria-labelledby="about-title"><div class="dialog-heading"><h2 id="about-title">A sound. A little space.</h2><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><div class="about-copy"><p>Current makes simple tones in your browser. You choose the pitch, the beat, and the space around them.</p><h3>Three ways to listen</h3><p><strong>Binaural:</strong> a different frequency in each ear. Headphones keep the tones separate; the difference can be perceived as a beat.</p><p><strong>Isochronic:</strong> one tone pulsed at your chosen rate, with smooth edges. Works with headphones or speakers.</p><p><strong>Monaural:</strong> two tones mixed into both channels, creating an acoustic beat. Works with headphones or speakers.</p><h3>About the evidence</h3><p>Research on binaural beats and brain activity is inconsistent. A 2023 systematic review found that the available studies did not give an unequivocal answer about brainwave entrainment. A steady tone can still be part of a personal listening ritual; an effect on your EEG, focus or health is not guaranteed.</p><p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286023" target="_blank" rel="noopener noreferrer">Read the 2023 PLOS ONE review ↗</a></p><h3>Private, and yours</h3><p>No account, cookies, analytics, or audio uploads. Presets stay in your browser. A shared URL includes the sound settings, not your listening history. All tones and ambient layers are generated locally. The downloaded HTML includes everything needed to play offline.</p><h3>Golden Lift</h3><p>Starts with 220 Hz in the left ear and 230 Hz in the right, with a quiet 277 + 330 Hz chord. Its pulse moves from 80 BPM to 115 BPM, then returns to 80 during the fade. Centre the beat for a 215 / 225 Hz pair.</p></div></dialog>
+  <dialog id="about-dialog" aria-labelledby="about-title"><div class="dialog-heading"><h2 id="about-title">A sound. A little space.</h2><button class="dialog-close" type="button" aria-label="Close dialog">×</button></div><div class="about-copy"><p>Current makes simple tones in your browser. You choose the pitch, the beat, and the space around them.</p><h3>Four ways to listen</h3><p><strong>Binaural:</strong> a different frequency in each ear. Headphones keep the tones separate; the difference can be perceived as a beat.</p><p><strong>Isochronic:</strong> one tone pulsed at your chosen rate, with smooth edges. Works with headphones or speakers.</p><p><strong>Monaural:</strong> two tones mixed into both channels, creating an acoustic beat. Works with headphones or speakers.</p><p><strong>Pure tone:</strong> a single steady sine in both channels. Vibe Tuned plays 432 Hz without a timer; Body Bass plays 50 Hz for 10 minutes and can feed a compatible vibration pad or chair through your device’s audio output.</p><h3>About the evidence</h3><p>Research on binaural beats and brain activity is inconsistent. A 2023 systematic review found that the available studies did not give an unequivocal answer about brainwave entrainment. A steady tone can still be part of a personal listening ritual; an effect on your EEG, focus or health is not guaranteed.</p><p><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286023" target="_blank" rel="noopener noreferrer">Read the 2023 PLOS ONE review ↗</a></p><h3>Private, and yours</h3><p>No account, cookies, analytics, or audio uploads. Presets stay in your browser. A shared URL includes the sound settings, not your listening history. All tones and ambient layers are generated locally. The downloaded HTML includes everything needed to play offline.</p><h3>Aura Farming</h3><p>Five minutes of 136 Hz with a 7.83 Hz beat, then five minutes of 220 / 230 Hz. The first pair is exactly 132.085 / 139.915 Hz and is rounded to one decimal on screen. The transition is included in exported audio. Editing the carrier, beat, or alignment switches to a single custom sound; changing the session length divides the new duration equally between the two stages.</p><h3>Golden Lift</h3><p>Starts with 220 Hz in the left ear and 230 Hz in the right, with a quiet 277 + 330 Hz chord. Its pulse moves from 80 BPM to 115 BPM, then returns to 80 during the fade. Centre the beat for a 215 / 225 Hz pair.</p></div></dialog>
   <noscript><div class="no-js">Current needs JavaScript to generate sound. Enable it in your browser and reload.</div></noscript>
   <script id="current-boot" type="application/json">null</script>
   <script>(function (root) {
@@ -146,7 +158,7 @@
 
   const STORAGE_KEY = 'current.binaural.v1';
   const BACKUP_KEY = 'current.binaural.backup';
-  const MODES = ['binaural', 'isochronic', 'monaural'];
+  const MODES = ['binaural', 'isochronic', 'monaural', 'drone'];
   const LAYERS = ['brown', 'pink', 'rain'];
   const NOISE_DEFAULTS = Object.freeze({ brown: 0.08, pink: 0.08, rain: 0.10 });
   const NUMERIC = {
@@ -157,8 +169,11 @@
   const BOOLS = ['pulseOn', 'accent', 'chord'];
   const ORDER = ['preset', 'mode', 'carrier', 'beat', 'align', 'volume', 'minutes',
     'settle', 'fade', 'pulseOn', 'pulse', 'tempo', 'pulseDepth', 'accent', 'noise',
-    'noiseGain', 'chord', 'exportRate', 'exportDepth'];
-  const SOUND_KEYS = ORDER.filter(function (key) { return key !== 'preset'; });
+    'noiseGain', 'chord', 'sequence', 'breathing', 'exportRate', 'exportDepth'];
+  // Export format changes the downloaded file, not the sound or preset identity.
+  const SOUND_KEYS = ORDER.filter(function (key) {
+    return ['preset', 'exportRate', 'exportDepth'].indexOf(key) < 0;
+  });
   const own = function (obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); };
   const object = function (value) { return value !== null && typeof value === 'object' && !Array.isArray(value); };
   const finite = function (value) {
@@ -197,20 +212,95 @@
     mode: 'binaural', carrier: 110, beat: 4, align: 'center', volume: 0.25,
     minutes: 10, settle: 120, fade: 120, pulseOn: false, pulse: 60, tempo: 'steady',
     pulseDepth: 0.12, accent: false, noise: [], noiseGain: {}, chord: false,
+    sequence: 'none', breathing: 'none',
     preset: '', exportRate: 44100, exportDepth: 16
   });
   const BUILT_INS = deepFreeze({
     'calm-current': Object.assign({}, ENGINE_DEFAULTS, {
       preset: 'calm-current', slug: 'calm-current', name: 'Calm Current',
       description: 'A low, even hold for settling', builtIn: true,
+      category: 'calm', purpose: 'A quiet listening ritual', guidance: 'Headphones. A gentle 60 BPM swell accompanies the tones.',
       minutes: 14, settle: 120, fade: 120, pulseOn: true, pulseDepth: 0.10
     }),
     'golden-lift': Object.assign({}, ENGINE_DEFAULTS, {
       preset: 'golden-lift', slug: 'golden-lift', name: 'Golden Lift',
       description: 'A brighter, major-key lift', builtIn: true,
+      category: 'energy', purpose: 'A brighter listening ritual', guidance: 'Headphones. The pulse moves from 80 to 115 BPM, then returns to 80.',
       carrier: 220, beat: 10, align: 'right', minutes: 15, settle: 120,
       fade: 120, pulseOn: true, pulse: 80, tempo: 'golden', pulseDepth: 0.12,
       accent: true, chord: true
+    }),
+    'main-character-energy': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'main-character-energy', slug: 'main-character-energy', name: 'Main Character Energy',
+      description: 'A bright chord with a steady, upbeat swell', builtIn: true,
+      category: 'energy', purpose: 'Positivity',
+      guidance: 'Headphones. A 220 / 230 Hz pair, quiet 277 + 330 Hz chord, and steady 115 BPM pulse.',
+      carrier: 220, beat: 10, align: 'right', minutes: 15,
+      pulseOn: true, pulse: 115, tempo: 'steady', pulseDepth: 0.12, accent: false, chord: true
+    }),
+    'rizz-mode': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'rizz-mode', slug: 'rizz-mode', name: 'Rizz Mode',
+      description: 'A clear tone with room for an easy breath', builtIn: true,
+      category: 'calm', purpose: 'Attraction',
+      guidance: 'Headphones. Breathe in for 4 counts, out for 6. A 10-minute pause before heading out.',
+      carrier: 528, beat: 6, align: 'center', minutes: 10, breathing: '4-6'
+    }),
+    'lucky-glitch': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'lucky-glitch', slug: 'lucky-glitch', name: 'Lucky Glitch',
+      description: 'A crisp 300 Hz tone, pulsed at 40 Hz', builtIn: true,
+      category: 'energy', purpose: 'Lucky',
+      guidance: 'Headphones or speakers. Ten minutes in the morning.',
+      mode: 'isochronic', carrier: 300, beat: 40, minutes: 10
+    }),
+    'aura-farming': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'aura-farming', slug: 'aura-farming', name: 'Aura Farming',
+      description: 'Five minutes to ground, five for a brighter finish', builtIn: true,
+      category: 'energy', purpose: 'Aura maxing',
+      guidance: 'Headphones. Five minutes at 136 Hz, then five at 220 / 230 Hz. Hum along gently if you like.',
+      carrier: 136, beat: 7.83, align: 'center', minutes: 10, settle: 10, fade: 10, sequence: 'aura'
+    }),
+    'locked-in': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'locked-in', slug: 'locked-in', name: 'Locked In',
+      description: 'A steady sound for a 25-minute work block', builtIn: true,
+      category: 'focus', purpose: 'Focus',
+      guidance: 'Headphones. Set aside 25 minutes for one task.',
+      carrier: 200, beat: 15, align: 'center', minutes: 25
+    }),
+    'soft-life': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'soft-life', slug: 'soft-life', name: 'Soft Life',
+      description: 'Low tones and a slow, even swell', builtIn: true,
+      category: 'calm', purpose: 'Calm',
+      guidance: 'Headphones. A 108 / 112 Hz pair with a gentle 60 BPM pulse.',
+      carrier: 110, beat: 4, align: 'center', minutes: 14,
+      pulseOn: true, pulse: 60, pulseDepth: 0.10
+    }),
+    'dream-portal': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'dream-portal', slug: 'dream-portal', name: 'Dream Portal',
+      description: 'Twenty quiet minutes with a soft tone pair', builtIn: true,
+      category: 'calm', purpose: 'Creative drift',
+      guidance: 'Headphones. Close your eyes and give yourself 20 minutes to drift.',
+      carrier: 150, beat: 6, align: 'center', minutes: 20
+    }),
+    'deep-reset': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'deep-reset', slug: 'deep-reset', name: 'Deep Reset',
+      description: 'A low, slow pair with a five-minute fade', builtIn: true,
+      category: 'calm', purpose: 'Sleep',
+      guidance: 'Headphones. A 30-minute session with a gradual five-minute fade.',
+      carrier: 100, beat: 2, align: 'center', minutes: 30, fade: 300
+    }),
+    'vibe-tuned': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'vibe-tuned', slug: 'vibe-tuned', name: 'Vibe Tuned',
+      description: 'One continuous 432 Hz tone, on your time', builtIn: true,
+      category: 'drone', purpose: 'Warmth',
+      guidance: 'Headphones or speakers. A continuous 432 Hz drone; stop whenever you like.',
+      mode: 'drone', carrier: 432, beat: 0, minutes: 0, settle: 0, fade: 0, pulseOn: false
+    }),
+    'body-bass': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'body-bass', slug: 'body-bass', name: 'Body Bass',
+      description: 'A low 50 Hz drone and an optional breath guide', builtIn: true,
+      category: 'drone', purpose: 'Grounded',
+      guidance: 'Route your device audio to a compatible vibration pad or chair. Breathe in for 4 counts and out for 6.',
+      mode: 'drone', carrier: 50, beat: 0, minutes: 10, breathing: '4-6', pulseOn: false
     })
   });
   const DEFAULTS = deepFreeze(Object.assign({}, ENGINE_DEFAULTS,
@@ -230,8 +320,10 @@
   function defaultPhases(minutes, preset) {
     const total = number(minutes, 10, 0, 90, 0) * 60;
     if (total === 0) return { settle: 0, core: 0, fade: 0, total: 0 };
+    if (preset === 'deep-reset' && total === 1800) return { settle: 120, core: 1380, fade: 300, total: total };
     let edge;
-    if (preset === 'calm-current' && total === 600) edge = 90;
+    if (preset === 'aura-farming' && total === 600) edge = 10;
+    else if (preset === 'calm-current' && total === 600) edge = 90;
     else if (total >= 360) edge = 120;
     else if (total >= 180) edge = 60;
     else edge = Math.round(total * 0.15);
@@ -266,7 +358,7 @@
     Object.keys(NUMERIC).forEach(function (key) {
       const limits = NUMERIC[key];
       const fallback = Number.isFinite(finite(base[key])) ? finite(base[key]) : ENGINE_DEFAULTS[key];
-      result[key] = number(raw[key], fallback, limits[0],
+      result[key] = number(raw[key], fallback, key === 'carrier' && result.mode === 'drone' ? 40 : limits[0],
         key === 'beat' && result.mode === 'binaural' ? 40 : limits[1], limits[2]);
     });
     BOOLS.forEach(function (key) { result[key] = bool(raw[key], base[key]); });
@@ -283,6 +375,27 @@
       result.tempo = base.tempo;
     } else {
       result.tempo = own(BUILT_INS, result.preset) ? BUILT_INS[result.preset].tempo : 'steady';
+    }
+    ['sequence', 'breathing'].forEach(function (key) {
+      const values = key === 'sequence' ? ['none', 'aura'] : ['none', '4-6'];
+      if (own(input, key)) result[key] = values.indexOf(input[key]) >= 0 ? input[key] :
+        (values.indexOf(base[key]) >= 0 ? base[key] : 'none');
+      else if (own(input, 'preset') && own(BUILT_INS, input.preset)) result[key] = BUILT_INS[input.preset][key];
+      else result[key] = values.indexOf(base[key]) >= 0 ? base[key] : 'none';
+    });
+    if (result.mode === 'drone') {
+      result.beat = 0;
+      result.pulseOn = false;
+      result.accent = false;
+      result.chord = false;
+    }
+    // A sequence defines its pitches; normal manual tuning clears its marker in the UI.
+    if (result.mode !== 'binaural') result.sequence = 'none';
+    if (result.sequence === 'aura') {
+      if (result.minutes === 0) result.minutes = 10;
+      result.carrier = 136;
+      result.beat = 7.83;
+      result.align = 'center';
     }
     result.exportRate = [44100, 48000].indexOf(Number(raw.exportRate)) >= 0 ? Number(raw.exportRate) :
       ([44100, 48000].indexOf(Number(base.exportRate)) >= 0 ? Number(base.exportRate) : 44100);
@@ -321,6 +434,9 @@
     state = normalize(state);
     options = options || {};
     const value = number(minutes, state.minutes, 0, 90, 0);
+    // Aura needs a midpoint. An untimed UI request must not erase the existing
+    // envelope before normalize restores a timed programme.
+    if (state.sequence === 'aura' && value === 0) return state;
     const timing = options.preserveCustom ?
       phases(Object.assign({}, state, { minutes: value })) : defaultPhases(value, state.preset);
     return normalize({ minutes: value, settle: timing.settle, fade: timing.fade }, state);
@@ -332,7 +448,7 @@
     if (state.mode === 'monaural' || (state.mode === 'binaural' && state.align === 'center')) {
       effectiveCarrier = Math.max(state.carrier, 40 + state.beat / 2);
     }
-    if (state.mode === 'isochronic') return {
+    if (state.mode === 'isochronic' || state.mode === 'drone') return {
       left: effectiveCarrier, right: effectiveCarrier, effectiveCarrier: effectiveCarrier, raised: false
     };
     const offsetRight = state.mode === 'binaural' && state.align === 'right';
@@ -343,7 +459,35 @@
     };
   }
 
+  // Display-ready stage numbers are 1-based. All timing is in seconds from Start.
+  // The audio engine schedules the same midpoint on the AudioContext clock.
+  function sequenceAt(input, elapsedSeconds) {
+    const state = normalize(input);
+    const total = state.minutes * 60;
+    const elapsed = Math.max(0, Number.isFinite(finite(elapsedSeconds)) ? finite(elapsedSeconds) : 0);
+    const sequenced = state.sequence === 'aura';
+    const stageCount = sequenced ? 2 : 1;
+    const duration = total > 0 ? total / stageCount : null;
+    const stageIndex = sequenced && elapsed >= duration ? 2 : 1;
+    const stageElapsed = duration === null ? elapsed : Math.min(duration, Math.max(0, elapsed - (stageIndex - 1) * duration));
+    let active = copy(state);
+    if (sequenced && stageIndex === 2) {
+      // Keep sequence on the stage view for UI metadata; do not renormalize it
+      // back to the programme's initial settings after applying this stage.
+      active.carrier = 220; active.beat = 10; active.align = 'right';
+    }
+    const freq = sequenced && stageIndex === 2 ?
+      {left: 220, right: 230, effectiveCarrier: 220, raised: false} : frequencies(active);
+    return {
+      sequence: state.sequence, stageIndex: stageIndex, stageCount: stageCount,
+      stageName: sequenced ? (stageIndex === 1 ? 'Ground' : 'Lift') : 'Listening',
+      stageElapsed: stageElapsed, stageRemaining: duration === null ? null : Math.max(0, duration - stageElapsed),
+      stageDuration: duration, state: active, frequencies: freq
+    };
+  }
+
   function band(value) {
+    if (finite(value) === 0) return {id: 'drone', name: 'Steady tone', min: 0, max: 0, value: 0, description: 'One continuous tone'};
     const n = clamp(Number.isFinite(finite(value)) ? finite(value) : 4, 0.5, 100);
     return copy(BANDS.find(function (entry) { return n < entry.max; }) || BANDS[BANDS.length - 1]);
   }
@@ -390,7 +534,7 @@
       if (Number.isFinite(n)) input[key] = n;
       else warnings.push('Some link values were adjusted to stay in range.');
     });
-    ['mode', 'align', 'tempo'].forEach(function (key) { if (query.has(key)) input[key] = query.get(key); });
+    ['mode', 'align', 'tempo', 'sequence', 'breathing'].forEach(function (key) { if (query.has(key)) input[key] = query.get(key); });
     BOOLS.forEach(function (key) {
       if (query.get(key) === '1' || query.get(key) === '0') input[key] = query.get(key) === '1';
     });
@@ -563,7 +707,7 @@
     DEFAULTS: DEFAULTS, ENGINE_DEFAULTS: ENGINE_DEFAULTS, BUILT_INS: BUILT_INS,
     BANDS: BANDS, NOISE_DEFAULTS: NOISE_DEFAULTS, STORAGE_KEY: STORAGE_KEY,
     normalize: normalize, phases: phases, defaultPhases: defaultPhases, withDuration: withDuration,
-    frequencies: frequencies, band: band, fromURL: fromURL, toQuery: toQuery,
+    frequencies: frequencies, sequenceAt: sequenceAt, band: band, fromURL: fromURL, toQuery: toQuery,
     loadStorage: loadStorage, saveStorage: saveStorage, slugify: slugify, matchesPreset: matchesPreset
   });
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -594,25 +738,30 @@
   const error = (code, message) => Object.assign(new Error(message), {code});
 
   function normalize(input = {}) {
-    const mode = ['binaural', 'isochronic', 'monaural'].includes(input.mode) ? input.mode : 'binaural';
+    const mode = ['binaural', 'isochronic', 'monaural', 'drone'].includes(input.mode) ? input.mode : 'binaural';
     const s = {
-      mode, carrier: clamp(input.carrier, 60, 600, 110),
-      beat: clamp(input.beat, 0.5, mode === 'binaural' ? 40 : 100, 4),
+      mode, carrier: clamp(input.carrier, mode === 'drone' ? 40 : 60, 600, 110),
+      beat: mode === 'drone' ? 0 : clamp(input.beat, 0.5, mode === 'binaural' ? 40 : 100, 4),
       align: input.align === 'right' ? 'right' : 'center',
       volume: clamp(input.volume, 0, 0.6, 0.25),
       minutes: Math.round(clamp(input.minutes, 0, 90, 14)),
       settle: clamp(input.settle, 0, 300, 120),
       fade: clamp(input.fade, 0, 300, 120),
-      pulseOn: input.pulseOn === undefined ? true : !!input.pulseOn,
+      pulseOn: mode !== 'drone' && (input.pulseOn === undefined ? true : !!input.pulseOn),
       pulse: clamp(input.pulse, 40, 180, 60),
       pulseDepth: clamp(input.pulseDepth, 0, 0.25, 0.1),
-      accent: !!input.accent,
-      chord: !!input.chord,
+      accent: mode !== 'drone' && !!input.accent,
+      chord: mode !== 'drone' && !!input.chord,
       noise: NOISE_TYPES.filter(n => Array.isArray(input.noise) && input.noise.includes(n)),
       noiseGain: {},
       tempo: ['steady', 'golden'].includes(input.tempo) ? input.tempo : (input.preset === 'golden-lift' ? 'golden' : 'steady'),
+      sequence: input.sequence === 'aura' && mode === 'binaural' ? 'aura' : 'none',
       preset: typeof input.preset === 'string' ? input.preset : ''
     };
+    if (s.sequence === 'aura') {
+      s.carrier = 136; s.beat = 7.83; s.align = 'center';
+      if (s.minutes === 0) s.minutes = 10;
+    }
     for (const n of NOISE_TYPES) s.noiseGain[n] = clamp(input.noiseGain && input.noiseGain[n], 0, 0.4, n === 'rain' ? 0.1 : 0.08);
     const sum = s.noise.reduce((v, n) => v + s.noiseGain[n], 0);
     if (sum > 0.4) for (const n of s.noise) s.noiseGain[n] *= 0.4 / sum;
@@ -625,10 +774,27 @@
   }
 
   function frequencies(s) {
-    if (s.mode === 'isochronic') return {left: s.carrier, right: s.carrier, carrier: s.carrier};
+    if (s.mode === 'isochronic' || s.mode === 'drone') return {left: s.carrier, right: s.carrier, carrier: s.carrier};
     if (s.mode === 'binaural' && s.align === 'right') return {left: s.carrier, right: s.carrier + s.beat, carrier: s.carrier};
     const carrier = Math.max(s.carrier, 40 + s.beat / 2);
     return {left: carrier - s.beat / 2, right: carrier + s.beat / 2, carrier};
+  }
+
+  function sequenceInfo(s, elapsed, duration) {
+    if (s.sequence !== 'aura' || s.mode !== 'binaural' || duration <= 0) {
+      return {sequence: 'none', stage: null, stageName: null, stageIndex: 0,
+        stageCount: 0, stageElapsed: 0, stageRemaining: null, state: s};
+    }
+    const midpoint = duration / 2;
+    const first = elapsed < midpoint;
+    const stageStart = first ? 0 : midpoint;
+    const stageEnd = first ? midpoint : duration;
+    const stageName = first ? 'Ground' : 'Lift';
+    return {sequence: 'aura', stage: stageName, stageName, stageIndex: first ? 1 : 2,
+      stageCount: 2, stageElapsed: Math.max(0, Math.min(elapsed, stageEnd) - stageStart),
+      stageRemaining: Math.max(0, stageEnd - elapsed),
+      state: {...s, carrier: first ? 136 : 220, beat: first ? 7.83 : 10,
+        align: first ? 'center' : 'right'}};
   }
 
   function hold(param, at) {
@@ -826,6 +992,9 @@
     } else if (s.mode === 'monaural') {
       oscillator(f.left).connect(gain(ctx, 0.5, nodes)).connect(output);
       oscillator(f.right).connect(gain(ctx, 0.5, nodes)).connect(output);
+    } else if (s.mode === 'drone') {
+      // One unmodulated sine. The stereo sum duplicates this mono source.
+      oscillator(s.carrier).connect(output);
     } else {
       pulseAmp = gain(ctx, 0, nodes);
       oscillator(s.carrier).connect(pulseAmp).connect(output);
@@ -848,6 +1017,10 @@
           if (Math.abs(next.beat - previous.beat) > 0.00001) setIsoShape(next.beat, time, false);
         }
       },
+      holdFrequencies(time) {
+        for (const source of oscillators) hold(source.frequency, time);
+        if (isoLFO) hold(isoLFO.frequency, time);
+      },
       stop(time) { for (const source of sources) stopSource(source, time); },
       dispose() { for (const source of sources) stopSource(source); for (const node of nodes) disconnect(node); }
     };
@@ -860,6 +1033,7 @@
     const end = duration > 0 ? start + duration : Infinity;
     const finalStop = Number.isFinite(end) ? end + 0.05 : Infinity;
     const nodes = [], sources = [], modes = [], noises = {};
+    let stopping = false, disposed = false, stoppedAt = null;
     const sum = gain(ctx, 1, nodes);
     sum.channelCount = 2;
     sum.channelCountMode = 'explicit';
@@ -877,23 +1051,51 @@
       // Include the final transport ramp in the stated duration, also when Fade=0.
       transport.gain.setValueCurveAtTime(makeCurve(1, 0), end - 1, 1);
     }
-    let activeMode = buildMode(ctx, state, start, sum, finalStop);
-    modes.push(activeMode);
-    const buffers = pulseBuffers(ctx);
-    const pulseSources = [];
-    const pulseDepth = gain(ctx, state.pulseOn ? -state.pulseDepth : 0, nodes);
-    const accentDepth = gain(ctx, state.pulseOn && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, nodes);
-    for (const [buffer, depth] of [[buffers.regular, pulseDepth], [buffers.accent, accentDepth]]) {
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-      source.playbackRate.value = state.pulse / 60;
-      source.connect(depth).connect(pulse.gain);
-      sources.push(source); nodes.push(source); pulseSources.push(source);
-      source.start(start);
-      if (Number.isFinite(finalStop)) source.stop(finalStop);
+    function sequenceAt(time) {
+      const position = Math.max(0, (stoppedAt === null ? time : Math.min(time, stoppedAt)) - start);
+      return sequenceInfo(state, position, duration);
     }
+    let activeMode = buildMode(ctx, sequenceAt(start).state, start, sum, finalStop);
+    modes.push(activeMode);
+
+    function scheduleSequence(time, initial) {
+      if (state.sequence !== 'aura' || activeMode.mode !== 'binaural' || duration <= 0) return;
+      const midpoint = start + duration / 2;
+      const first = frequencies(sequenceInfo(state, 0, duration).state);
+      const second = frequencies(sequenceInfo(state, duration, duration).state);
+      for (const [index, channel] of ['left', 'right'].entries()) {
+        const param = activeMode.oscillators[index].frequency;
+        if (!initial) hold(param, time);
+        if (time < midpoint) {
+          if (initial) param.setValueAtTime(first[channel], time);
+          else {
+            // Re-enabling a sequence reaches its current stage continuously.
+            param.setValueAtTime(param.value, time);
+            param.linearRampToValueAtTime(first[channel], Math.min(time + 0.25, midpoint));
+          }
+          // The entire transition is on the audio clock: neither background tab
+          // throttling nor an offline render needs a JS timer to change stage.
+          param.setValueAtTime(first[channel], midpoint);
+          param.linearRampToValueAtTime(second[channel], midpoint + 0.25);
+        } else if (initial) param.setValueAtTime(second[channel], time);
+        else param.setTargetAtTime(second[channel], time, 0.05);
+      }
+    }
+    scheduleSequence(start, true);
+
+    const pulseSources = [];
+    const pulseDepth = gain(ctx, 0, nodes);
+    const accentDepth = gain(ctx, 0, nodes);
+    let pulseCleanupTimer = null, chordCleanupTimer = null;
     let tempoAuto = state.tempo === 'golden';
+
+    function removeSource(source) {
+      stopSource(source); disconnect(source);
+      for (const list of [sources, nodes]) {
+        const index = list.indexOf(source);
+        if (index >= 0) list.splice(index, 1);
+      }
+    }
 
     function tempoAt(time) {
       if (!tempoAuto) return state.pulse;
@@ -920,18 +1122,73 @@
         }
       }
     }
-    scheduleTempo(start, true);
-
     const chords = [];
-    for (const hz of [277, 330]) {
-      const source = ctx.createOscillator();
-      source.type = 'sine'; source.frequency.value = hz;
-      const level = gain(ctx, state.chord ? 0.12 : 0, nodes);
-      source.connect(level).connect(sum);
-      source.start(start);
-      if (Number.isFinite(finalStop)) source.stop(finalStop);
-      sources.push(source); nodes.push(source); chords.push(level);
+
+    function syncPulse(time, previous) {
+      const enabled = state.pulseOn && state.mode !== 'drone';
+      const tempoChanged = !previous || state.pulse !== previous.pulse || state.tempo !== previous.tempo;
+      tempoAuto = state.tempo === 'golden';
+      target(pulseDepth.gain, enabled ? -state.pulseDepth : 0, time);
+      target(accentDepth.gain, enabled && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, time);
+      let created = false;
+      if (enabled) {
+        clearTimeout(pulseCleanupTimer); pulseCleanupTimer = null;
+        if (!pulseSources.length) {
+          const buffers = pulseBuffers(ctx);
+          for (const [buffer, depth] of [[buffers.regular, pulseDepth], [buffers.accent, accentDepth]]) {
+            const source = ctx.createBufferSource();
+            source.buffer = buffer; source.loop = true;
+            source.playbackRate.value = tempoAt(time) / 60;
+            source.connect(depth).connect(pulse.gain);
+            sources.push(source); nodes.push(source); pulseSources.push(source);
+            source.start(time);
+            if (Number.isFinite(finalStop)) source.stop(finalStop);
+          }
+          created = true;
+        }
+      } else if (pulseSources.length && !pulseCleanupTimer) {
+        // Audio-rate gains fade the modulation out immediately. This timeout
+        // only reclaims silent nodes; it is never needed to sustain audio.
+        pulseCleanupTimer = setTimeout(() => {
+          pulseCleanupTimer = null;
+          if (disposed || state.pulseOn && state.mode !== 'drone') return;
+          for (const source of pulseSources.splice(0)) removeSource(source);
+        }, 400);
+      }
+      if (created || tempoChanged) scheduleTempo(time, created);
     }
+
+    function syncChord(time) {
+      const enabled = state.chord && state.mode !== 'drone';
+      if (enabled) {
+        clearTimeout(chordCleanupTimer); chordCleanupTimer = null;
+        if (!chords.length) {
+          for (const hz of [277, 330]) {
+            const source = ctx.createOscillator();
+            source.type = 'sine'; source.frequency.value = hz;
+            const level = gain(ctx, 0, nodes);
+            source.connect(level).connect(sum);
+            source.start(time);
+            if (Number.isFinite(finalStop)) source.stop(finalStop);
+            sources.push(source); nodes.push(source); chords.push({source, level});
+          }
+        }
+      }
+      for (const item of chords) target(item.level.gain, enabled ? 0.12 : 0, time);
+      if (!enabled && chords.length && !chordCleanupTimer) {
+        chordCleanupTimer = setTimeout(() => {
+          chordCleanupTimer = null;
+          if (disposed || state.chord && state.mode !== 'drone') return;
+          for (const item of chords.splice(0)) {
+            removeSource(item.source); disconnect(item.level);
+            const index = nodes.indexOf(item.level);
+            if (index >= 0) nodes.splice(index, 1);
+          }
+        }, 400);
+      }
+    }
+    syncPulse(start, null);
+    syncChord(start);
 
     function syncNoise(time) {
       for (const kind of NOISE_TYPES) {
@@ -952,13 +1209,12 @@
     }
     syncNoise(start);
 
-    let stopping = false, disposed = false;
     return {
       ctx, start, end, duration, session, sum, volume, transport, envelope, duck, limiter,
       get state() { return state; },
       get mode() { return activeMode; },
       get tempoAuto() { return tempoAuto; },
-      tempoAt,
+      tempoAt, sequenceAt,
       update(inputState) {
         if (stopping || disposed) return;
         const next = normalize(inputState), previous = state;
@@ -967,7 +1223,7 @@
         target(volume.gain, state.volume, time);
         if (state.mode !== previous.mode) {
           const old = activeMode;
-          const replacement = buildMode(ctx, state, time + 0.005, sum, finalStop, 0);
+          const replacement = buildMode(ctx, sequenceAt(time).state, time + 0.005, sum, finalStop, 0);
           const transition = ctx.currentTime;
           const inCurve = Float32Array.from({length: 129}, (_, i) => Math.sin(i / 128 * Math.PI / 2));
           const outCurve = Float32Array.from({length: 129}, (_, i) => Math.cos(i / 128 * Math.PI / 2));
@@ -984,19 +1240,26 @@
           }, 300);
           activeMode = replacement;
           modes.push(replacement);
-        } else activeMode.update(state, time, previous);
-        target(pulseDepth.gain, state.pulseOn ? -state.pulseDepth : 0, time);
-        target(accentDepth.gain, state.pulseOn && state.accent ? -Math.min(state.pulseDepth * 0.25, 0.25 - state.pulseDepth) : 0, time);
-        if (state.pulse !== previous.pulse || state.tempo !== previous.tempo) {
-          tempoAuto = state.tempo === 'golden';
-          scheduleTempo(time, false);
+          scheduleSequence(transition, true);
+        } else if (state.sequence !== previous.sequence) {
+          if (state.sequence === 'aura') scheduleSequence(time, false);
+          else activeMode.update(state, time, previous); // Cancels any pending stage.
+        } else if (state.sequence !== 'aura' &&
+          (state.carrier !== previous.carrier || state.beat !== previous.beat || state.align !== previous.align)) {
+          activeMode.update(state, time, previous);
         }
-        for (const level of chords) target(level.gain, state.chord ? 0.12 : 0, time);
+        syncPulse(time, previous);
+        syncChord(time);
         syncNoise(time);
       },
       fadeStop(time) {
         if (stopping || disposed) return time;
         stopping = true;
+        stoppedAt = time;
+        // A manual stop freezes any pending sequence/tempo change while the
+        // transport fades out, including a stop immediately before a midpoint.
+        activeMode.holdFrequencies(time);
+        for (const source of pulseSources) hold(source.playbackRate, time);
         hold(transport.gain, time);
         const level = transport.gain.value;
         transport.gain.setValueCurveAtTime(makeCurve(level, 0), time, 1);
@@ -1007,6 +1270,7 @@
       dispose() {
         if (disposed) return;
         disposed = true;
+        clearTimeout(pulseCleanupTimer); clearTimeout(chordCleanupTimer);
         for (const source of sources) stopSource(source);
         for (const mode of modes) mode.dispose();
         for (const node of nodes) disconnect(node);
@@ -1109,14 +1373,15 @@
     getSnapshot() {
       const graph = this.graph;
       const s = graph ? graph.state : this.lastState;
-      const f = frequencies(s);
+      const elapsed = graph ? Math.max(0, this.context.currentTime - graph.start) : 0;
+      const total = graph ? graph.duration : s.minutes * 60;
+      const info = graph ? graph.sequenceAt(this.context.currentTime) : sequenceInfo(s, 0, total);
+      const f = frequencies(info.state);
       let left = f.left, right = f.right;
       if (graph && graph.mode.oscillators.length) {
         left = graph.mode.oscillators[0].frequency.value;
         right = graph.mode.oscillators[1] ? graph.mode.oscillators[1].frequency.value : left;
       }
-      const elapsed = graph ? Math.max(0, this.context.currentTime - graph.start) : 0;
-      const total = graph ? graph.duration : s.minutes * 60;
       const remaining = total > 0 ? Math.max(0, total - elapsed) : null;
       const phases = graph ? graph.session : s;
       let phase = this.playing ? 'Core' : 'Ready', phaseRemaining = remaining;
@@ -1126,9 +1391,16 @@
         else { phase = 'Fade'; phaseRemaining = Math.max(0, total - elapsed); }
       }
       if (this.stopping) phase = 'Stopping';
+      const activeBeat = s.mode === 'drone' ? 0 : s.mode === 'isochronic' ? s.beat : Math.max(0, right - left);
+      const activeAlign = s.mode === 'binaural' ? info.state.align : 'center';
+      const activeCarrier = s.mode === 'drone' || s.mode === 'isochronic' || activeAlign === 'right' ? left : (left + right) / 2;
       return {playing: this.playing, stopping: this.stopping, elapsed, remaining, duration: total,
         phase, phaseRemaining, left, right, pulse: graph ? graph.tempoAt(this.context.currentTime) : s.pulse,
-        contextState: this.context ? this.context.state : 'uninitialized', tempoAuto: !!(graph && graph.tempoAuto)};
+        contextState: this.context ? this.context.state : 'uninitialized', tempoAuto: !!(graph && graph.tempoAuto),
+        sequence: info.sequence, stage: info.stage, stageName: info.stageName,
+        stageIndex: info.stageIndex, stageCount: info.stageCount,
+        stageElapsed: info.stageElapsed, stageRemaining: info.stageRemaining,
+        activeBeat, activeCarrier, activeAlign};
     }
 
     async testChannel(side) {
@@ -1285,6 +1557,7 @@
   let state = embedded && !explicitSession ? S.normalize(embedded) : parsed.state;
   let live = {playing:false,stopping:false,elapsed:0,contextState:'uninitialized'};
   let starting = false;
+  let loadingPreset = false;
   let audioUnavailable = false;
   let phasesEdited = urlParams.has('settle') || urlParams.has('fade') || customPhases(state);
   let comfortShown = false;
@@ -1344,16 +1617,27 @@
     clearTimeout(saveTimer); clearTimeout(urlTimer);
     saveTimer=setTimeout(persist,500); urlTimer=setTimeout(writeURL,250);
   }
+  function activeToneSettings() {
+    const snapshot=engine.getSnapshot();
+    if(snapshot.playing&&snapshot.sequence==='aura') return {
+      carrier:snapshot.activeCarrier,beat:snapshot.activeBeat,align:snapshot.activeAlign
+    };
+    return {carrier:state.carrier,beat:state.beat,align:state.align};
+  }
   function setState(patch, options) {
     options=options||{};
     const before=state;
+    if(state.sequence==='aura' && !Object.prototype.hasOwnProperty.call(patch,'sequence') &&
+      ['carrier','beat','mode','align'].some(key=>Object.prototype.hasOwnProperty.call(patch,key) && patch[key]!==state[key])) {
+      patch=Object.assign({},activeToneSettings(),patch,{sequence:'none'});
+    }
     const raw=Object.assign({},state,patch);
     if (raw.mode==='binaural' && Number(raw.beat)>40) toast('Beat limited to 40 Hz in binaural mode');
     const noiseSum=(raw.noise||[]).reduce((sum,n)=>sum+Number((raw.noiseGain||{})[n] ?? S.NOISE_DEFAULTS[n]),0);
     if(noiseSum>0.4000001) toast('Noise mix capped at 40%');
     if(raw.minutes>0 && Number(raw.settle)+Number(raw.fade)>raw.minutes*60) toast('Settle and fade were shortened to fit the session');
     state=S.normalize(raw);
-    if(state.volume>0.4 && before.volume<=0.4 && !comfortShown){comfortShown=true;toast('Keep this below conversation level');}
+    if(state.volume>0.4 && before.volume<=0.4 && !comfortShown){comfortShown=true;toast('Keep the volume comfortable.');}
     engine.update(state);
     if((patch.minutes!==undefined || patch.settle!==undefined || patch.fade!==undefined) && live.playing && !options.silentTiming) {
       $('next-session-hint').hidden=false;
@@ -1365,12 +1649,32 @@
   function activePreset() {const entry=presetEntry(); return entry && S.matchesPreset(state,entry) ? entry : null;}
   function displayName() {const entry=activePreset();return entry?entry.name:'Custom sound';}
   function customPhases(s){const p=S.defaultPhases(s.minutes,s.preset);return s.settle!==p.settle||s.fade!==p.fade;}
-  function loadPreset(slug) {
+  async function loadPreset(slug) {
     const preset=S.BUILT_INS[slug] || storage.presets.find(p=>p.slug===slug);
     if(!preset){toast('That preset is not on this device.');return;}
-    phasesEdited=customPhases(S.normalize(preset));
-    setState(S.normalize(preset),{notifyTiming:true});writeURL();
-    announce(preset.name+' loaded.',true);
+    if(starting||loadingPreset)return;
+    loadingPreset=true;renderTransport();
+    try {
+      if(live.playing||live.stopping){await engine.stop();live=engine.getSnapshot();releaseWakeLock();}
+      phasesEdited=customPhases(S.normalize(preset));
+      setState(S.normalize(preset),{silentTiming:true});writeURL();
+      $('next-session-hint').hidden=true;
+      announce(preset.name+' loaded. Press Start when ready.',true);
+    } finally {loadingPreset=false;renderTransport();}
+  }
+  function initBuiltInPresets() {
+    const select=$('preset-select'),holder=$('built-in-presets');
+    select.replaceChildren();holder.replaceChildren();
+    const custom=document.createElement('option');custom.value='';custom.textContent='Custom sound';custom.disabled=true;select.append(custom);
+    Object.values(S.BUILT_INS).forEach(p=>{
+      const option=document.createElement('option');option.value=p.slug;option.textContent=p.name+' · '+(p.minutes?p.minutes+' min':'Untimed');select.append(option);
+      const button=document.createElement('button');button.type='button';button.className='preset-card'+(p.category==='energy'?' golden':'');button.dataset.preset=p.slug;button.setAttribute('aria-pressed','false');
+      const copy=document.createElement('span');copy.className='preset-copy';
+      const name=document.createElement('strong');name.textContent=p.name;
+      const purpose=document.createElement('span');purpose.textContent=p.purpose||p.description;
+      const detail=document.createElement('small');const sound=p.mode==='drone'?p.carrier+' Hz':p.sequence==='aura'?'7.83 → 10 Hz':p.beat+' Hz'+(p.mode==='isochronic'?' pulse':' beat');detail.textContent=sound+' · '+(p.minutes?p.minutes+' min':'Untimed');
+      copy.append(name,purpose,detail);button.append(copy);holder.append(button);
+    });
   }
   function assign(id,value) {
     const el=$(id);
@@ -1394,22 +1698,35 @@
     $$('[data-user-preset]').forEach(el=>el.setAttribute('aria-pressed',String(state.preset===el.dataset.userPreset && !!activePreset())));
   }
   function render() {
-    const freq=S.frequencies(state), band=S.band(state.beat), p=S.phases(state), active=activePreset();
-    document.body.classList.toggle('golden-session',state.preset==='golden-lift');
+    const targetFreq=S.frequencies(state), snapshot=engine.getSnapshot();
+    const liveTones=snapshot.playing&&Number.isFinite(snapshot.left)&&Number.isFinite(snapshot.right);
+    const freq=liveTones?Object.assign({},targetFreq,{left:snapshot.left,right:snapshot.right}):targetFreq;
+    const displayedBeat=liveTones&&snapshot.sequence==='aura'?snapshot.activeBeat:state.beat;
+    const band=S.band(displayedBeat), p=S.phases(state), active=activePreset();
+    document.body.classList.toggle('golden-session',presetEntry()?.category==='energy');
     document.body.classList.toggle('reduced-motion',prefs.reduceMotion || mediaReduce.matches);
     $('session-title').textContent=displayName();
-    $('band-label').textContent=band.name+' · '+state.beat.toFixed(2)+' Hz';
-    $('left-label').textContent=state.mode==='monaural'?'TONE A':state.mode==='isochronic'?'LEFT':'LEFT EAR';
-    $('right-label').textContent=state.mode==='monaural'?'TONE B':state.mode==='isochronic'?'RIGHT':'RIGHT EAR';
+    $('band-label').textContent=state.mode==='drone'?'Pure tone · no beat':band.name+' · '+displayedBeat.toFixed(2)+' Hz';
+    $('left-label').textContent=state.mode==='monaural'?'TONE A':state.mode==='isochronic'||state.mode==='drone'?'LEFT':'LEFT EAR';
+    $('right-label').textContent=state.mode==='monaural'?'TONE B':state.mode==='isochronic'||state.mode==='drone'?'RIGHT':'RIGHT EAR';
     $('left-frequency').replaceChildren(document.createTextNode(freq.left.toFixed(1)+' '),Object.assign(document.createElement('small'),{textContent:'Hz'}));
     $('right-frequency').replaceChildren(document.createTextNode(freq.right.toFixed(1)+' '),Object.assign(document.createElement('small'),{textContent:'Hz'}));
     const raised='Carrier raised to '+freq.effectiveCarrier.toFixed(1)+' Hz so both ears stay above 40 Hz';
     $('carrier-warning').hidden=!freq.raised;$('carrier-warning').textContent=raised;
     $$('[data-mode]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.mode===state.mode)));
-    const hints={binaural:'Headphones required. A different tone in each ear.',isochronic:'Headphones or speakers. One tone, smoothly pulsed.',monaural:'Headphones or speakers. Both tones in both channels.'};
+    const hints={binaural:'Headphones required. A different tone in each ear.',isochronic:'Headphones or speakers. One tone, smoothly pulsed.',monaural:'Headphones or speakers. Both tones in both channels.',drone:'A single steady sine tone in both channels. No beat or pulse.'};
     $('mode-help').querySelector('span').textContent=hints[state.mode];
+    const drone=state.mode==='drone';
+    $('carrier-control-label').textContent=state.sequence==='aura'?'Starting carrier':'Carrier frequency';
+    $('carrier-help').textContent=state.sequence==='aura'?'Two-part session':'The pitch you hear';
+    $('carrier').min=drone?'40':'60';$('carrier-min').textContent=$('carrier').min+' Hz';
     $('beat').max=state.mode==='binaural'?'40':'100';$('beat-max').textContent=$('beat').max+' Hz';
-    $('beat-help').textContent=state.mode==='binaural'?'Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.':'Beat rate up to 100 Hz. Try isochronic for a clearer pulse above 30 Hz.';
+    $('beat').min=drone?'0':'0.5';$('beat-min').textContent=drone?'0 Hz':'0.5 Hz';
+    $('beat').disabled=drone;$('beat-number').disabled=drone;
+    $('beat-control-label').textContent=state.mode==='isochronic'?'Pulse rate':drone?'Beat · off':'Beat offset';
+    $('beat-help').textContent=drone?'Pure tone keeps the beat at zero. Choose another mode to add a beat.':state.mode==='binaural'?'Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.':'Beat rate up to 100 Hz. Try isochronic for a clearer pulse above 30 Hz.';
+    if(state.sequence==='aura')$('beat-help').textContent='Starts at 7.83 Hz, then changes to 10 Hz halfway through. Editing the tones switches to a single custom sound.';
+    $$('[data-beat]').forEach(el=>el.disabled=drone);
     assign('carrier',state.carrier);assign('carrier-number',state.carrier.toFixed(1));
     assign('beat',state.beat);assign('beat-number',state.beat.toFixed(2));
     assign('volume',state.volume);assign('volume-number',Math.round(state.volume*100));
@@ -1417,15 +1734,22 @@
     assign('minutes',state.minutes||'Off');assign('settle',state.settle);assign('fade',state.fade);
     assign('pulse',state.pulse);assign('pulse-number',state.pulse);assign('pulse-depth',state.pulseDepth);
     $('pulse-on').checked=state.pulseOn;$('accent').checked=state.accent;$('chord').checked=state.chord;$('center-beat').checked=state.align==='center';
+    $('pulse-on').disabled=drone;$('chord').disabled=drone;
     $('center-beat').disabled=state.mode!=='binaural';
     $('align-help').textContent=state.align==='center'?'Equal distance from the carrier':'Carrier in left ear, offset in right';
     ['pulse','pulse-number','pulse-depth','accent'].forEach(id=>$(id).disabled=!state.pulseOn);
     const autoTempo=state.tempo==='golden';
-    $('tempo-note').textContent=autoTempo?'Golden Lift: 80 BPM to settle, 115 in Core, then back to 80. Editing tempo sets a steady pulse.':'A slow swell, separate from the beat offset.';
+    $('tempo-note').textContent=drone?'Pure tone plays one steady sine. Choose another mode for a pulse or chord.':autoTempo?'Golden Lift: 80 BPM to settle, 115 in Core, then back to 80. Editing tempo sets a steady pulse.':'A slow swell, separate from the beat offset.';
     $('pulse-depth-value').textContent=Math.round(state.pulseDepth*100)+'%';
     $('wake-lock').checked=prefs.wakeLock;$('reduce-motion').checked=prefs.reduceMotion||mediaReduce.matches;
+    $('breathing-on').checked=state.breathing==='4-6';
     $$('[data-preset]').forEach(el=>{const selected=!!active&&active.slug===el.dataset.preset;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));});
-    $$('[data-minutes]').forEach(el=>{const yes=Number(el.dataset.minutes)===state.minutes;el.classList.toggle('selected',yes);el.setAttribute('aria-pressed',String(yes));});
+    $('preset-select').value=active&&S.BUILT_INS[active.slug]?active.slug:'';
+    $('preset-select').options[0].textContent=active&&!active.builtIn?active.name:'Custom sound';
+    $('preset-purpose').textContent=active?.purpose|| (active?'Saved on this device':'Your own mix');
+    $('preset-description').textContent=active?.description|| (state.sequence==='aura'?'A two-part session with a gentle change at the midpoint.':'Shape the pitch, beat, and background to suit your moment.');
+    $('preset-guidance').textContent=active?.guidance|| (state.mode==='binaural'?'Use headphones. Keep the volume comfortable.':state.mode==='drone'?'A steady tone in both channels. Keep the volume comfortable.':'Headphones or speakers. Keep the volume comfortable.');
+    $$('[data-minutes]').forEach(el=>{const yes=Number(el.dataset.minutes)===state.minutes;el.classList.toggle('selected',yes);el.setAttribute('aria-pressed',String(yes));el.disabled=el.dataset.minutes==='0'&&state.sequence==='aura';});
     $$('[data-beat]').forEach(el=>el.setAttribute('aria-pressed',String(Math.abs(Number(el.dataset.beat)-state.beat)<.009)));
     $('settle-readout').textContent=shortTime(p.settle);$('core-readout').textContent=shortTime(p.core);$('fade-readout').textContent=shortTime(p.fade);
     ['settle','core','fade'].forEach(phase=>document.querySelector('.phase-'+phase).style.width=(p.total?p[phase]/p.total*100:phase==='core'?100:0)+'%');
@@ -1435,14 +1759,33 @@
     renderUserPresets();renderTransport();
     let readout=state.mode==='monaural'?'Both '+freq.left.toFixed(1)+' + '+freq.right.toFixed(1)+' Hz':'Left '+freq.left.toFixed(1)+' Hz · Right '+freq.right.toFixed(1)+' Hz';
     if(state.mode==='isochronic') readout+=' · pulse '+state.beat.toFixed(2)+' Hz';
-    announce(readout+'. '+band.name+' · '+state.beat.toFixed(2)+' Hz.');
+    announce(readout+'. '+(drone?'Pure tone. No beat.':band.name+' · '+displayedBeat.toFixed(2)+' Hz.'));
+  }
+  function renderGuides() {
+    const breathing=state.breathing==='4-6';$('breathing-guide').hidden=!breathing;
+    if(breathing){
+      const following=live.playing&&!live.stopping;
+      const within=Math.max(0,live.elapsed||0)%10,inhale=within<4;
+      const phase=following?(inhale?'Breathe in':'Breathe out'):'In 4 · out 6';
+      const count=following?(Math.floor(inhale?within:within-4)+1)+' / '+(inhale?4:6):'Ready';
+      if($('breath-phase').textContent!==phase)$('breath-phase').textContent=phase;
+      if($('breath-count').textContent!==count)$('breath-count').textContent=count;
+      $('breathing-guide').classList.toggle('exhale',following&&!inhale);
+      $('breathing-guide').style.setProperty('--breath-scale',following?String(.72+.28*(inhale?within/4:1-(within-4)/6)):'.72');
+    }
+    const seq=live.playing?live.sequence==='aura':state.sequence==='aura';$('sequence-guide').hidden=!seq;
+    if(seq){
+      const view=live.playing?live:S.sequenceAt(state,0);
+      $('sequence-stage').textContent=(view.stageIndex||1)+' / 2 · '+(view.stageName||view.stage||'Ground');
+      $('sequence-next').textContent=live.playing?(view.stageIndex===2?'Finish in ':'Lift in ')+formatTime(view.stageRemaining):'Lift begins at '+formatTime(state.minutes*30);
+    }
   }
   function renderTransport() {
     const isPlaying=live.playing, isStopping=live.stopping;
     document.body.classList.toggle('playing',isPlaying);
     const interrupted=isPlaying && live.contextState!=='running' && !isStopping;
     ['start','mobile-start'].forEach(id=>{
-      const button=$(id);button.disabled=isStopping||starting||audioUnavailable;
+      const button=$(id);button.disabled=isStopping||starting||loadingPreset||audioUnavailable;
       button.setAttribute('aria-pressed',String(isPlaying));
       const word=starting?'Starting…':isStopping?'Fading out…':interrupted?'Resume':isPlaying?'Stop':'Start';
       button.setAttribute('aria-label',interrupted?'Resume generator':isPlaying?'Stop generator':'Start generator');
@@ -1450,6 +1793,8 @@
       button.querySelector('use').setAttribute('href',isPlaying&&!interrupted?'#i-stop':'#i-play');
     });
     $('open-export').disabled=isPlaying||starting||isStopping;
+    $('preset-select').disabled=starting||isStopping||loadingPreset;
+    $$('[data-preset],[data-user-preset]').forEach(el=>el.disabled=starting||isStopping||loadingPreset);
     $('open-export').title=isPlaying?'Stop playback before exporting your session.':'Export this session as a stereo WAV';
     const timed=isPlaying?live.duration>0:state.minutes>0;
     const remaining=isPlaying?(timed?live.remaining:live.elapsed):state.minutes*60;
@@ -1458,8 +1803,9 @@
     $('phase-label').textContent=isStopping?'A gentle finish':interrupted?'Tap Resume to keep listening':isPlaying?(timed?live.phase+' · '+shortTime(live.phaseRemaining):'Untimed · stay as long as you like'):state.minutes?'minutes for yourself':'untimed · stop whenever you like';
     $('play-state').textContent=isStopping?'Finishing':interrupted?'Audio paused':isPlaying?'Listening':'Ready to listen';
     $('mobile-status').textContent=isPlaying?(live.phase||'Listening'):displayName();
+    renderGuides();
   }
-  function onAudioState(snapshot){live=snapshot;renderTransport();if(live.playing&&Number.isFinite(live.left)&&Number.isFinite(live.right)){[['left-frequency',live.left],['right-frequency',live.right]].forEach(([id,hz])=>{$(id).firstChild.textContent=hz.toFixed(1)+' ';});}if(!live.playing&&!live.stopping){releaseWakeLock();} }
+  function onAudioState(snapshot){live=snapshot;renderTransport();if(live.playing&&Number.isFinite(live.left)&&Number.isFinite(live.right)){[['left-frequency',live.left],['right-frequency',live.right]].forEach(([id,hz])=>{$(id).firstChild.textContent=hz.toFixed(1)+' ';});if(live.sequence==='aura'&&Number.isFinite(live.activeBeat))$('band-label').textContent=S.band(live.activeBeat).name+' · '+live.activeBeat.toFixed(2)+' Hz';}if(!live.playing&&!live.stopping){releaseWakeLock();} }
   function onAudioError(message,code){$('audio-error').textContent=message;$('audio-error').hidden=false;toast(message,true);if(code==='E001'){audioUnavailable=true;['start','mobile-start'].forEach(id=>$(id).disabled=true);} }
   function onSessionEnd(){releaseWakeLock();persist();$('next-session-hint').hidden=true;toast('Session ended. Take your time.');announce('Session ended.',true);render();}
   async function requestWakeLock(){
@@ -1491,7 +1837,7 @@
     function commit(){
       if(!dirty){el.value=options.format?options.format(state[key]):String(state[key]);return;}
       dirty=false;
-      const text=el.value.trim();let n=Number(text);
+      const text=el.value.trim();let n=options.duration&&text.toLowerCase()==='off'?0:Number(text);
       if(!text||!Number.isFinite(n)){el.value=options.format?options.format(state[key]):String(state[key]);return;}
       if(options.transform)n=options.transform(n);
       if(options.min!==undefined)n=Math.max(options.min,n);
@@ -1504,7 +1850,7 @@
     el.addEventListener('blur',commit);
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){dirty=false;el.value=options.format?options.format(state[key]):String(state[key]);el.blur();}});
   }
-  function changeDuration(minutes){setState(S.withDuration(state,Math.max(1,Math.min(90,minutes)),{preserveCustom:phasesEdited}),{notifyTiming:true});}
+  function changeDuration(minutes){setState(S.withDuration(state,Math.max(0,Math.min(90,minutes)),{preserveCustom:phasesEdited}),{notifyTiming:true});}
   async function copyLink(){
     writeURL();try{await navigator.clipboard.writeText(canonicalURL());toast('Link copied');}catch(_){toast('Could not copy. Select the address bar instead.',true);}
   }
@@ -1546,7 +1892,9 @@
     downloadBlob(new Blob([html],{type:'text/html;charset=utf-8'}),'current-offline.html');toast('Offline copy downloaded');
   }
 
+  initBuiltInPresets();
   $('start').addEventListener('click',togglePlayback);$('mobile-start').addEventListener('click',togglePlayback);
+  $('preset-select').addEventListener('change',()=>loadPreset($('preset-select').value));
   $('test-left').addEventListener('click',()=>testChannel('left'));$('test-right').addEventListener('click',()=>testChannel('right'));
   $('copy-link').addEventListener('click',copyLink);$('download-app').addEventListener('click',downloadApp);
   $$('[data-mode]').forEach(el=>el.addEventListener('click',()=>setState({mode:el.dataset.mode})));
@@ -1556,7 +1904,7 @@
   [['carrier','carrier'],['beat','beat'],['volume','volume'],['pulse','pulse'],['pulse-depth','pulseDepth']].forEach(([id,key])=>$(id).addEventListener('input',()=>setState(key==='pulse'?{pulse:Number($(id).value),tempo:'steady'}:{[key]:Number($(id).value)})));
   bindNumeric('carrier-number','carrier',{format:n=>n.toFixed(1)});bindNumeric('beat-number','beat',{format:n=>n.toFixed(2)});
   bindNumeric('volume-number','volume',{transform:n=>n/100,format:n=>String(Math.round(n*100))});
-  bindNumeric('minutes','minutes',{duration:true,min:1,max:90,format:n=>n?String(n):'Off'});
+  bindNumeric('minutes','minutes',{duration:true,min:0,max:90,format:n=>n?String(n):'Off'});
   bindNumeric('pulse-number','pulse');bindNumeric('settle','settle');bindNumeric('fade','fade');
   [['pulse-on','pulseOn'],['accent','accent'],['chord','chord']].forEach(([id,key])=>$(id).addEventListener('change',()=>setState({[key]:$(id).checked})));
   $('center-beat').addEventListener('change',()=>setState({align:$('center-beat').checked?'center':'right'}));
@@ -1565,6 +1913,7 @@
     $('gain-'+n).addEventListener('input',()=>setState({noiseGain:Object.assign({},state.noiseGain,{[n]:Number($('gain-'+n).value)})}));
   });
   $('wake-lock').addEventListener('change',()=>{prefs.wakeLock=$('wake-lock').checked;if(prefs.wakeLock)requestWakeLock();else releaseWakeLock();persist();});
+  $('breathing-on').addEventListener('change',()=>setState({breathing:$('breathing-on').checked?'4-6':'none'}));
   $('reduce-motion').addEventListener('change',()=>{prefs.reduceMotion=$('reduce-motion').checked;persist();render();});
   mediaReduce.addEventListener('change',()=>render());
   $('dismiss-safety').addEventListener('click',()=>{storage.dismissedSafety=true;persist();render();});
@@ -1587,9 +1936,9 @@
     if((e.key===' '||e.key==='Enter')&&focusedButton)return;
     const key=e.key.toLowerCase();let handled=true;
     if(key===' '){togglePlayback();}
-    else if(key==='arrowup'||key==='arrowdown'){const step=e.altKey?.1:e.shiftKey?10:1;setState({carrier:state.carrier+(key==='arrowup'?step:-step)});}
-    else if(key==='arrowright'||key==='arrowleft'){const step=e.altKey?.01:e.shiftKey?1:.1;setState({beat:state.beat+(key==='arrowright'?step:-step)});}
-    else if(key==='m'){const modes=['binaural','isochronic','monaural'];setState({mode:modes[(modes.indexOf(state.mode)+1)%3]});}
+    else if(key==='arrowup'||key==='arrowdown'){const step=e.altKey?.1:e.shiftKey?10:1;setState({carrier:activeToneSettings().carrier+(key==='arrowup'?step:-step)});}
+    else if(key==='arrowright'||key==='arrowleft'){if(state.mode!=='drone'){const step=e.altKey?.01:e.shiftKey?1:.1;setState({beat:activeToneSettings().beat+(key==='arrowright'?step:-step)});}}
+    else if(key==='m'){const modes=['binaural','isochronic','monaural','drone'];setState({mode:modes[(modes.indexOf(state.mode)+1)%modes.length]});}
     else if(key==='p')setState({pulseOn:!state.pulseOn});
     else if(key==='['||key===',')setState({volume:state.volume-.05});
     else if(key===']'||key==='.')setState({volume:state.volume+.05});

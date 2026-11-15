@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = 'current.binaural.v1';
   const BACKUP_KEY = 'current.binaural.backup';
-  const MODES = ['binaural', 'isochronic', 'monaural'];
+  const MODES = ['binaural', 'isochronic', 'monaural', 'drone'];
   const LAYERS = ['brown', 'pink', 'rain'];
   const NOISE_DEFAULTS = Object.freeze({ brown: 0.08, pink: 0.08, rain: 0.10 });
   const NUMERIC = {
@@ -14,8 +14,11 @@
   const BOOLS = ['pulseOn', 'accent', 'chord'];
   const ORDER = ['preset', 'mode', 'carrier', 'beat', 'align', 'volume', 'minutes',
     'settle', 'fade', 'pulseOn', 'pulse', 'tempo', 'pulseDepth', 'accent', 'noise',
-    'noiseGain', 'chord', 'exportRate', 'exportDepth'];
-  const SOUND_KEYS = ORDER.filter(function (key) { return key !== 'preset'; });
+    'noiseGain', 'chord', 'sequence', 'breathing', 'exportRate', 'exportDepth'];
+  // Export format changes the downloaded file, not the sound or preset identity.
+  const SOUND_KEYS = ORDER.filter(function (key) {
+    return ['preset', 'exportRate', 'exportDepth'].indexOf(key) < 0;
+  });
   const own = function (obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); };
   const object = function (value) { return value !== null && typeof value === 'object' && !Array.isArray(value); };
   const finite = function (value) {
@@ -54,20 +57,95 @@
     mode: 'binaural', carrier: 110, beat: 4, align: 'center', volume: 0.25,
     minutes: 10, settle: 120, fade: 120, pulseOn: false, pulse: 60, tempo: 'steady',
     pulseDepth: 0.12, accent: false, noise: [], noiseGain: {}, chord: false,
+    sequence: 'none', breathing: 'none',
     preset: '', exportRate: 44100, exportDepth: 16
   });
   const BUILT_INS = deepFreeze({
     'calm-current': Object.assign({}, ENGINE_DEFAULTS, {
       preset: 'calm-current', slug: 'calm-current', name: 'Calm Current',
       description: 'A low, even hold for settling', builtIn: true,
+      category: 'calm', purpose: 'A quiet listening ritual', guidance: 'Headphones. A gentle 60 BPM swell accompanies the tones.',
       minutes: 14, settle: 120, fade: 120, pulseOn: true, pulseDepth: 0.10
     }),
     'golden-lift': Object.assign({}, ENGINE_DEFAULTS, {
       preset: 'golden-lift', slug: 'golden-lift', name: 'Golden Lift',
       description: 'A brighter, major-key lift', builtIn: true,
+      category: 'energy', purpose: 'A brighter listening ritual', guidance: 'Headphones. The pulse moves from 80 to 115 BPM, then returns to 80.',
       carrier: 220, beat: 10, align: 'right', minutes: 15, settle: 120,
       fade: 120, pulseOn: true, pulse: 80, tempo: 'golden', pulseDepth: 0.12,
       accent: true, chord: true
+    }),
+    'main-character-energy': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'main-character-energy', slug: 'main-character-energy', name: 'Main Character Energy',
+      description: 'A bright chord with a steady, upbeat swell', builtIn: true,
+      category: 'energy', purpose: 'Positivity',
+      guidance: 'Headphones. A 220 / 230 Hz pair, quiet 277 + 330 Hz chord, and steady 115 BPM pulse.',
+      carrier: 220, beat: 10, align: 'right', minutes: 15,
+      pulseOn: true, pulse: 115, tempo: 'steady', pulseDepth: 0.12, accent: false, chord: true
+    }),
+    'rizz-mode': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'rizz-mode', slug: 'rizz-mode', name: 'Rizz Mode',
+      description: 'A clear tone with room for an easy breath', builtIn: true,
+      category: 'calm', purpose: 'Attraction',
+      guidance: 'Headphones. Breathe in for 4 counts, out for 6. A 10-minute pause before heading out.',
+      carrier: 528, beat: 6, align: 'center', minutes: 10, breathing: '4-6'
+    }),
+    'lucky-glitch': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'lucky-glitch', slug: 'lucky-glitch', name: 'Lucky Glitch',
+      description: 'A crisp 300 Hz tone, pulsed at 40 Hz', builtIn: true,
+      category: 'energy', purpose: 'Lucky',
+      guidance: 'Headphones or speakers. Ten minutes in the morning.',
+      mode: 'isochronic', carrier: 300, beat: 40, minutes: 10
+    }),
+    'aura-farming': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'aura-farming', slug: 'aura-farming', name: 'Aura Farming',
+      description: 'Five minutes to ground, five for a brighter finish', builtIn: true,
+      category: 'energy', purpose: 'Aura maxing',
+      guidance: 'Headphones. Five minutes at 136 Hz, then five at 220 / 230 Hz. Hum along gently if you like.',
+      carrier: 136, beat: 7.83, align: 'center', minutes: 10, settle: 10, fade: 10, sequence: 'aura'
+    }),
+    'locked-in': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'locked-in', slug: 'locked-in', name: 'Locked In',
+      description: 'A steady sound for a 25-minute work block', builtIn: true,
+      category: 'focus', purpose: 'Focus',
+      guidance: 'Headphones. Set aside 25 minutes for one task.',
+      carrier: 200, beat: 15, align: 'center', minutes: 25
+    }),
+    'soft-life': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'soft-life', slug: 'soft-life', name: 'Soft Life',
+      description: 'Low tones and a slow, even swell', builtIn: true,
+      category: 'calm', purpose: 'Calm',
+      guidance: 'Headphones. A 108 / 112 Hz pair with a gentle 60 BPM pulse.',
+      carrier: 110, beat: 4, align: 'center', minutes: 14,
+      pulseOn: true, pulse: 60, pulseDepth: 0.10
+    }),
+    'dream-portal': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'dream-portal', slug: 'dream-portal', name: 'Dream Portal',
+      description: 'Twenty quiet minutes with a soft tone pair', builtIn: true,
+      category: 'calm', purpose: 'Creative drift',
+      guidance: 'Headphones. Close your eyes and give yourself 20 minutes to drift.',
+      carrier: 150, beat: 6, align: 'center', minutes: 20
+    }),
+    'deep-reset': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'deep-reset', slug: 'deep-reset', name: 'Deep Reset',
+      description: 'A low, slow pair with a five-minute fade', builtIn: true,
+      category: 'calm', purpose: 'Sleep',
+      guidance: 'Headphones. A 30-minute session with a gradual five-minute fade.',
+      carrier: 100, beat: 2, align: 'center', minutes: 30, fade: 300
+    }),
+    'vibe-tuned': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'vibe-tuned', slug: 'vibe-tuned', name: 'Vibe Tuned',
+      description: 'One continuous 432 Hz tone, on your time', builtIn: true,
+      category: 'drone', purpose: 'Warmth',
+      guidance: 'Headphones or speakers. A continuous 432 Hz drone; stop whenever you like.',
+      mode: 'drone', carrier: 432, beat: 0, minutes: 0, settle: 0, fade: 0, pulseOn: false
+    }),
+    'body-bass': Object.assign({}, ENGINE_DEFAULTS, {
+      preset: 'body-bass', slug: 'body-bass', name: 'Body Bass',
+      description: 'A low 50 Hz drone and an optional breath guide', builtIn: true,
+      category: 'drone', purpose: 'Grounded',
+      guidance: 'Route your device audio to a compatible vibration pad or chair. Breathe in for 4 counts and out for 6.',
+      mode: 'drone', carrier: 50, beat: 0, minutes: 10, breathing: '4-6', pulseOn: false
     })
   });
   const DEFAULTS = deepFreeze(Object.assign({}, ENGINE_DEFAULTS,
@@ -87,8 +165,10 @@
   function defaultPhases(minutes, preset) {
     const total = number(minutes, 10, 0, 90, 0) * 60;
     if (total === 0) return { settle: 0, core: 0, fade: 0, total: 0 };
+    if (preset === 'deep-reset' && total === 1800) return { settle: 120, core: 1380, fade: 300, total: total };
     let edge;
-    if (preset === 'calm-current' && total === 600) edge = 90;
+    if (preset === 'aura-farming' && total === 600) edge = 10;
+    else if (preset === 'calm-current' && total === 600) edge = 90;
     else if (total >= 360) edge = 120;
     else if (total >= 180) edge = 60;
     else edge = Math.round(total * 0.15);
@@ -123,7 +203,7 @@
     Object.keys(NUMERIC).forEach(function (key) {
       const limits = NUMERIC[key];
       const fallback = Number.isFinite(finite(base[key])) ? finite(base[key]) : ENGINE_DEFAULTS[key];
-      result[key] = number(raw[key], fallback, limits[0],
+      result[key] = number(raw[key], fallback, key === 'carrier' && result.mode === 'drone' ? 40 : limits[0],
         key === 'beat' && result.mode === 'binaural' ? 40 : limits[1], limits[2]);
     });
     BOOLS.forEach(function (key) { result[key] = bool(raw[key], base[key]); });
@@ -140,6 +220,27 @@
       result.tempo = base.tempo;
     } else {
       result.tempo = own(BUILT_INS, result.preset) ? BUILT_INS[result.preset].tempo : 'steady';
+    }
+    ['sequence', 'breathing'].forEach(function (key) {
+      const values = key === 'sequence' ? ['none', 'aura'] : ['none', '4-6'];
+      if (own(input, key)) result[key] = values.indexOf(input[key]) >= 0 ? input[key] :
+        (values.indexOf(base[key]) >= 0 ? base[key] : 'none');
+      else if (own(input, 'preset') && own(BUILT_INS, input.preset)) result[key] = BUILT_INS[input.preset][key];
+      else result[key] = values.indexOf(base[key]) >= 0 ? base[key] : 'none';
+    });
+    if (result.mode === 'drone') {
+      result.beat = 0;
+      result.pulseOn = false;
+      result.accent = false;
+      result.chord = false;
+    }
+    // A sequence defines its pitches; normal manual tuning clears its marker in the UI.
+    if (result.mode !== 'binaural') result.sequence = 'none';
+    if (result.sequence === 'aura') {
+      if (result.minutes === 0) result.minutes = 10;
+      result.carrier = 136;
+      result.beat = 7.83;
+      result.align = 'center';
     }
     result.exportRate = [44100, 48000].indexOf(Number(raw.exportRate)) >= 0 ? Number(raw.exportRate) :
       ([44100, 48000].indexOf(Number(base.exportRate)) >= 0 ? Number(base.exportRate) : 44100);
@@ -178,6 +279,9 @@
     state = normalize(state);
     options = options || {};
     const value = number(minutes, state.minutes, 0, 90, 0);
+    // Aura needs a midpoint. An untimed UI request must not erase the existing
+    // envelope before normalize restores a timed programme.
+    if (state.sequence === 'aura' && value === 0) return state;
     const timing = options.preserveCustom ?
       phases(Object.assign({}, state, { minutes: value })) : defaultPhases(value, state.preset);
     return normalize({ minutes: value, settle: timing.settle, fade: timing.fade }, state);
@@ -189,7 +293,7 @@
     if (state.mode === 'monaural' || (state.mode === 'binaural' && state.align === 'center')) {
       effectiveCarrier = Math.max(state.carrier, 40 + state.beat / 2);
     }
-    if (state.mode === 'isochronic') return {
+    if (state.mode === 'isochronic' || state.mode === 'drone') return {
       left: effectiveCarrier, right: effectiveCarrier, effectiveCarrier: effectiveCarrier, raised: false
     };
     const offsetRight = state.mode === 'binaural' && state.align === 'right';
@@ -200,7 +304,35 @@
     };
   }
 
+  // Display-ready stage numbers are 1-based. All timing is in seconds from Start.
+  // The audio engine schedules the same midpoint on the AudioContext clock.
+  function sequenceAt(input, elapsedSeconds) {
+    const state = normalize(input);
+    const total = state.minutes * 60;
+    const elapsed = Math.max(0, Number.isFinite(finite(elapsedSeconds)) ? finite(elapsedSeconds) : 0);
+    const sequenced = state.sequence === 'aura';
+    const stageCount = sequenced ? 2 : 1;
+    const duration = total > 0 ? total / stageCount : null;
+    const stageIndex = sequenced && elapsed >= duration ? 2 : 1;
+    const stageElapsed = duration === null ? elapsed : Math.min(duration, Math.max(0, elapsed - (stageIndex - 1) * duration));
+    let active = copy(state);
+    if (sequenced && stageIndex === 2) {
+      // Keep sequence on the stage view for UI metadata; do not renormalize it
+      // back to the programme's initial settings after applying this stage.
+      active.carrier = 220; active.beat = 10; active.align = 'right';
+    }
+    const freq = sequenced && stageIndex === 2 ?
+      {left: 220, right: 230, effectiveCarrier: 220, raised: false} : frequencies(active);
+    return {
+      sequence: state.sequence, stageIndex: stageIndex, stageCount: stageCount,
+      stageName: sequenced ? (stageIndex === 1 ? 'Ground' : 'Lift') : 'Listening',
+      stageElapsed: stageElapsed, stageRemaining: duration === null ? null : Math.max(0, duration - stageElapsed),
+      stageDuration: duration, state: active, frequencies: freq
+    };
+  }
+
   function band(value) {
+    if (finite(value) === 0) return {id: 'drone', name: 'Steady tone', min: 0, max: 0, value: 0, description: 'One continuous tone'};
     const n = clamp(Number.isFinite(finite(value)) ? finite(value) : 4, 0.5, 100);
     return copy(BANDS.find(function (entry) { return n < entry.max; }) || BANDS[BANDS.length - 1]);
   }
@@ -247,7 +379,7 @@
       if (Number.isFinite(n)) input[key] = n;
       else warnings.push('Some link values were adjusted to stay in range.');
     });
-    ['mode', 'align', 'tempo'].forEach(function (key) { if (query.has(key)) input[key] = query.get(key); });
+    ['mode', 'align', 'tempo', 'sequence', 'breathing'].forEach(function (key) { if (query.has(key)) input[key] = query.get(key); });
     BOOLS.forEach(function (key) {
       if (query.get(key) === '1' || query.get(key) === '0') input[key] = query.get(key) === '1';
     });
@@ -420,7 +552,7 @@
     DEFAULTS: DEFAULTS, ENGINE_DEFAULTS: ENGINE_DEFAULTS, BUILT_INS: BUILT_INS,
     BANDS: BANDS, NOISE_DEFAULTS: NOISE_DEFAULTS, STORAGE_KEY: STORAGE_KEY,
     normalize: normalize, phases: phases, defaultPhases: defaultPhases, withDuration: withDuration,
-    frequencies: frequencies, band: band, fromURL: fromURL, toQuery: toQuery,
+    frequencies: frequencies, sequenceAt: sequenceAt, band: band, fromURL: fromURL, toQuery: toQuery,
     loadStorage: loadStorage, saveStorage: saveStorage, slugify: slugify, matchesPreset: matchesPreset
   });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,15 +1,68 @@
 # Current — acceptance and release evidence
 
-**Verified:** 14 November 2026  
+**Initial release verified:** 14 November 2026  
 **Application path:** `REMgm/8NTICLAB/apps/current`  
 **Live application:** [https://8-nticlab.vercel.app/apps/current/](https://8-nticlab.vercel.app/apps/current/)  
 **Browser-tested implementation:** `645e618c346e43b0a3a17853985e9d38540bc27d`  
 **Verified production implementation:** `090a2fc594a6dc6e9279d4237db8bcba2dd1ce9b`  
-**Status:** Published and publicly verified. All 12 real Chromium checks passed, alongside 36 state checks and mocked scheduling checks. Live production playback and HTTPS offline navigation/playback also passed.
+**Initial-release status:** Published and publicly verified. All 12 real Chromium checks passed, alongside 36 state checks and mocked scheduling checks. Live production playback and HTTPS offline navigation/playback also passed.  
+**Ten-preset expansion status:** Implemented in the working source, with 46 state checks passed. Focused browser/audio results and production verification for the expansion are pending; the initial-release results below are not a blanket pass for the new implementation.
 
 The production implementation includes cover/canonical-URL metadata and release evidence added after the full browser suite, without changes to playback behavior. Documentation-only commits may follow the verified production implementation without changing the application.
 
 This report distinguishes completed checks from intended behavior. A test script's presence does not establish a pass, a mocked graph does not establish the sound of a real browser, and a successful preview deployment does not establish that Current is publicly accessible.
+
+## Ten-preset expansion: specification and verification scope
+
+The update retains Calm Current and Golden Lift and adds the following ten requested sessions. This table records the intended audio contract, not an efficacy claim about a preset's purpose label.
+
+| Preset | Mode and carrier | Left / right frequencies or pulse | Duration and other settings |
+| --- | --- | --- | --- |
+| Main Character Energy | Binaural, 220 Hz | **220 / 230 Hz**, 10 Hz beat | **15 min**; **277 + 330 Hz** chord; steady **115 BPM** swell, 12% depth, no accent |
+| Rizz Mode | Binaural, 528 Hz | **525 / 531 Hz**, 6 Hz beat | **10 min**; visual **4-in / 6-out** breathing guide |
+| Lucky Glitch | Isochronic, 300 Hz | **40 Hz** amplitude pulse | **10 min** |
+| Aura Farming | Binaural, first 136 Hz, then 220 Hz | Exact **132.085 / 139.915 Hz**, 7.83 Hz difference, then **220 / 230 Hz**, 10 Hz difference | **10 min**; default midpoint at **300 seconds**; 250 ms pitch transition; 10-second Settle and Fade |
+| Locked In | Binaural, 200 Hz | **192.5 / 207.5 Hz**, 15 Hz beat | **25 min** |
+| Soft Life | Binaural, 110 Hz | **108 / 112 Hz**, 4 Hz beat | **14 min**; **60 BPM** swell at 10% depth |
+| Dream Portal | Binaural, 150 Hz | **147 / 153 Hz**, 6 Hz beat | **20 min** |
+| Deep Reset | Binaural, 100 Hz | **99 / 101 Hz**, 2 Hz beat | **30 min**, including a **5-minute fade** |
+| Vibe Tuned | Pure tone / drone, 432 Hz | Identical **432 Hz** signal in both channels, **zero beat** | **Untimed**; pulse, accent, and chord off |
+| Body Bass | Pure tone / drone, 50 Hz | Identical **50 Hz** signal in both channels, **zero beat** | **10 min**; visual **4-in / 6-out** breathing guide; pulse, accent, and chord off |
+
+The exact Aura pair is rounded to **132.1 / 139.9 Hz** only in the one-decimal UI. Synthesis and serialization preserve the **7.83 Hz** difference. The sequence uses native audio scheduling for live playback and the same graph for WAV export. A changed duration splits equally between the two stages; manual pitch/alignment edits leave the sequence. Body Bass does not directly integrate with haptic hardware: a compatible pad or chair receives the device's normal audio output.
+
+The state fields `sequence: 'none' | 'aura'` and `breathing: 'none' | '4-6'` are part of the saved and shared sound. Drone mode forces beat zero and disables pulse, accent, and chord. The breathing guide follows the audio clock through a four-second inhale and six-second exhale; it is visual guidance, not a sensor or medical intervention.
+
+| Expansion check | Status and scope |
+| --- | --- |
+| `tests/state.test.cjs` | **46 checks passed**, covering the new definitions, precise frequency math, drone invariants, Aura stage metadata, new-field URL/storage round trips, export-format-independent preset identity, and preservation of Aura duration/envelope when Untimed is rejected |
+| `tests/audio-schedule.test.cjs` | Updated mocked scheduling checks reported passing by the engine implementation task; real rendered audio is a separate check |
+| `tests/preset-browser-check.cjs` syntax | **Passed** with `node --check`; no browser pass inferred |
+| All twelve menu/library selectors and visible exact/rounded readouts | Focused browser result pending |
+| Real 4-in / 6-out UI cycle, saved preset, fresh-context shared link, and downloaded offline copy | Focused browser result pending |
+| Live Aura midpoint/readouts, volume rerender, manual beat edit, and fade-before-loading a silent new preset | Focused browser result pending |
+| Pure 50 Hz and 432 Hz drone WAVs | Real PCM measurement pending |
+| Full ten-minute Aura WAV before and after 300 seconds | Real PCM measurement pending |
+| Existing twelve-check browser regression suite against the expansion | Rerun pending |
+| Expanded production deployment and live HTTPS offline playback | Pending |
+
+The focused browser harness uses an already provisioned Playwright/Chromium installation and an isolated browser profile; it installs no dependencies. It checks both the native selector and the expandable twelve-button library, confirms silent preset loading, observes the first breathing cycle, saves and reloads a custom Aura session with breathing enabled, restores that sound in a fresh browser context, and downloads/plays its complete offline HTML with network access disabled.
+
+A live Aura fixture uses a one-minute duration with zero Settle/Fade and waits for actual audio elapsed time to reach **30.35 seconds**. It must show stage **2 / 2 · Lift**, **220 / 230 Hz**, and the **10 Hz** beat. Editing volume must preserve those active readouts through a full UI render. Editing the beat to **12 Hz** must leave the sequence, retain the active **220 Hz / right-aligned** configuration, and settle at **220 / 232 Hz**. A separate interaction observes a running preset's faded stop before a newly selected preset loads silently. These are real audio-clock and UI checks, not an accelerated JavaScript timer simulation.
+
+Its real-audio probes call the production `CurrentAudio.renderWav` graph. The two drone fixtures use a one-minute finite duration with zero Settle/Fade to measure a stable tone; this diagnostic override does not change Vibe Tuned's untimed default. They measure each tone's amplitude, concentration of energy at the requested frequency, and left/right equality. The Aura probe renders the complete **600-second** stereo **44.1 kHz / 16-bit** WAV and measures four-second windows beginning at **295 seconds** and **301 seconds**, plus adjacent-sample continuity around the midpoint. A pass must come from the resulting PCM, not from querying configured frequencies alone.
+
+Reproduction in a prepared browser environment:
+
+```bash
+node tests/preset-browser-check.cjs
+```
+
+Optional environment variables are `CURRENT_PLAYWRIGHT` (existing package path), `CURRENT_TEST_URL` (hosted target; otherwise the local `index.html`), and `CURRENT_PRESET_RESULTS` (report path; otherwise `tests/preset-browser-results.json`). Record the completed report and released implementation before marking expansion checks passed.
+
+## Initial-release evidence
+
+The numbered sections below describe the previously verified implementation identified at the top of this report. Their precise measurements remain useful as the regression baseline, but do not replace the expansion checks above.
 
 ## 1. Completed state checks
 

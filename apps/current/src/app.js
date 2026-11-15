@@ -14,6 +14,7 @@
   let state = embedded && !explicitSession ? S.normalize(embedded) : parsed.state;
   let live = {playing:false,stopping:false,elapsed:0,contextState:'uninitialized'};
   let starting = false;
+  let loadingPreset = false;
   let audioUnavailable = false;
   let phasesEdited = urlParams.has('settle') || urlParams.has('fade') || customPhases(state);
   let comfortShown = false;
@@ -73,16 +74,27 @@
     clearTimeout(saveTimer); clearTimeout(urlTimer);
     saveTimer=setTimeout(persist,500); urlTimer=setTimeout(writeURL,250);
   }
+  function activeToneSettings() {
+    const snapshot=engine.getSnapshot();
+    if(snapshot.playing&&snapshot.sequence==='aura') return {
+      carrier:snapshot.activeCarrier,beat:snapshot.activeBeat,align:snapshot.activeAlign
+    };
+    return {carrier:state.carrier,beat:state.beat,align:state.align};
+  }
   function setState(patch, options) {
     options=options||{};
     const before=state;
+    if(state.sequence==='aura' && !Object.prototype.hasOwnProperty.call(patch,'sequence') &&
+      ['carrier','beat','mode','align'].some(key=>Object.prototype.hasOwnProperty.call(patch,key) && patch[key]!==state[key])) {
+      patch=Object.assign({},activeToneSettings(),patch,{sequence:'none'});
+    }
     const raw=Object.assign({},state,patch);
     if (raw.mode==='binaural' && Number(raw.beat)>40) toast('Beat limited to 40 Hz in binaural mode');
     const noiseSum=(raw.noise||[]).reduce((sum,n)=>sum+Number((raw.noiseGain||{})[n] ?? S.NOISE_DEFAULTS[n]),0);
     if(noiseSum>0.4000001) toast('Noise mix capped at 40%');
     if(raw.minutes>0 && Number(raw.settle)+Number(raw.fade)>raw.minutes*60) toast('Settle and fade were shortened to fit the session');
     state=S.normalize(raw);
-    if(state.volume>0.4 && before.volume<=0.4 && !comfortShown){comfortShown=true;toast('Keep this below conversation level');}
+    if(state.volume>0.4 && before.volume<=0.4 && !comfortShown){comfortShown=true;toast('Keep the volume comfortable.');}
     engine.update(state);
     if((patch.minutes!==undefined || patch.settle!==undefined || patch.fade!==undefined) && live.playing && !options.silentTiming) {
       $('next-session-hint').hidden=false;
@@ -94,12 +106,32 @@
   function activePreset() {const entry=presetEntry(); return entry && S.matchesPreset(state,entry) ? entry : null;}
   function displayName() {const entry=activePreset();return entry?entry.name:'Custom sound';}
   function customPhases(s){const p=S.defaultPhases(s.minutes,s.preset);return s.settle!==p.settle||s.fade!==p.fade;}
-  function loadPreset(slug) {
+  async function loadPreset(slug) {
     const preset=S.BUILT_INS[slug] || storage.presets.find(p=>p.slug===slug);
     if(!preset){toast('That preset is not on this device.');return;}
-    phasesEdited=customPhases(S.normalize(preset));
-    setState(S.normalize(preset),{notifyTiming:true});writeURL();
-    announce(preset.name+' loaded.',true);
+    if(starting||loadingPreset)return;
+    loadingPreset=true;renderTransport();
+    try {
+      if(live.playing||live.stopping){await engine.stop();live=engine.getSnapshot();releaseWakeLock();}
+      phasesEdited=customPhases(S.normalize(preset));
+      setState(S.normalize(preset),{silentTiming:true});writeURL();
+      $('next-session-hint').hidden=true;
+      announce(preset.name+' loaded. Press Start when ready.',true);
+    } finally {loadingPreset=false;renderTransport();}
+  }
+  function initBuiltInPresets() {
+    const select=$('preset-select'),holder=$('built-in-presets');
+    select.replaceChildren();holder.replaceChildren();
+    const custom=document.createElement('option');custom.value='';custom.textContent='Custom sound';custom.disabled=true;select.append(custom);
+    Object.values(S.BUILT_INS).forEach(p=>{
+      const option=document.createElement('option');option.value=p.slug;option.textContent=p.name+' · '+(p.minutes?p.minutes+' min':'Untimed');select.append(option);
+      const button=document.createElement('button');button.type='button';button.className='preset-card'+(p.category==='energy'?' golden':'');button.dataset.preset=p.slug;button.setAttribute('aria-pressed','false');
+      const copy=document.createElement('span');copy.className='preset-copy';
+      const name=document.createElement('strong');name.textContent=p.name;
+      const purpose=document.createElement('span');purpose.textContent=p.purpose||p.description;
+      const detail=document.createElement('small');const sound=p.mode==='drone'?p.carrier+' Hz':p.sequence==='aura'?'7.83 → 10 Hz':p.beat+' Hz'+(p.mode==='isochronic'?' pulse':' beat');detail.textContent=sound+' · '+(p.minutes?p.minutes+' min':'Untimed');
+      copy.append(name,purpose,detail);button.append(copy);holder.append(button);
+    });
   }
   function assign(id,value) {
     const el=$(id);
@@ -123,22 +155,35 @@
     $$('[data-user-preset]').forEach(el=>el.setAttribute('aria-pressed',String(state.preset===el.dataset.userPreset && !!activePreset())));
   }
   function render() {
-    const freq=S.frequencies(state), band=S.band(state.beat), p=S.phases(state), active=activePreset();
-    document.body.classList.toggle('golden-session',state.preset==='golden-lift');
+    const targetFreq=S.frequencies(state), snapshot=engine.getSnapshot();
+    const liveTones=snapshot.playing&&Number.isFinite(snapshot.left)&&Number.isFinite(snapshot.right);
+    const freq=liveTones?Object.assign({},targetFreq,{left:snapshot.left,right:snapshot.right}):targetFreq;
+    const displayedBeat=liveTones&&snapshot.sequence==='aura'?snapshot.activeBeat:state.beat;
+    const band=S.band(displayedBeat), p=S.phases(state), active=activePreset();
+    document.body.classList.toggle('golden-session',presetEntry()?.category==='energy');
     document.body.classList.toggle('reduced-motion',prefs.reduceMotion || mediaReduce.matches);
     $('session-title').textContent=displayName();
-    $('band-label').textContent=band.name+' · '+state.beat.toFixed(2)+' Hz';
-    $('left-label').textContent=state.mode==='monaural'?'TONE A':state.mode==='isochronic'?'LEFT':'LEFT EAR';
-    $('right-label').textContent=state.mode==='monaural'?'TONE B':state.mode==='isochronic'?'RIGHT':'RIGHT EAR';
+    $('band-label').textContent=state.mode==='drone'?'Pure tone · no beat':band.name+' · '+displayedBeat.toFixed(2)+' Hz';
+    $('left-label').textContent=state.mode==='monaural'?'TONE A':state.mode==='isochronic'||state.mode==='drone'?'LEFT':'LEFT EAR';
+    $('right-label').textContent=state.mode==='monaural'?'TONE B':state.mode==='isochronic'||state.mode==='drone'?'RIGHT':'RIGHT EAR';
     $('left-frequency').replaceChildren(document.createTextNode(freq.left.toFixed(1)+' '),Object.assign(document.createElement('small'),{textContent:'Hz'}));
     $('right-frequency').replaceChildren(document.createTextNode(freq.right.toFixed(1)+' '),Object.assign(document.createElement('small'),{textContent:'Hz'}));
     const raised='Carrier raised to '+freq.effectiveCarrier.toFixed(1)+' Hz so both ears stay above 40 Hz';
     $('carrier-warning').hidden=!freq.raised;$('carrier-warning').textContent=raised;
     $$('[data-mode]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.mode===state.mode)));
-    const hints={binaural:'Headphones required. A different tone in each ear.',isochronic:'Headphones or speakers. One tone, smoothly pulsed.',monaural:'Headphones or speakers. Both tones in both channels.'};
+    const hints={binaural:'Headphones required. A different tone in each ear.',isochronic:'Headphones or speakers. One tone, smoothly pulsed.',monaural:'Headphones or speakers. Both tones in both channels.',drone:'A single steady sine tone in both channels. No beat or pulse.'};
     $('mode-help').querySelector('span').textContent=hints[state.mode];
+    const drone=state.mode==='drone';
+    $('carrier-control-label').textContent=state.sequence==='aura'?'Starting carrier':'Carrier frequency';
+    $('carrier-help').textContent=state.sequence==='aura'?'Two-part session':'The pitch you hear';
+    $('carrier').min=drone?'40':'60';$('carrier-min').textContent=$('carrier').min+' Hz';
     $('beat').max=state.mode==='binaural'?'40':'100';$('beat-max').textContent=$('beat').max+' Hz';
-    $('beat-help').textContent=state.mode==='binaural'?'Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.':'Beat rate up to 100 Hz. Try isochronic for a clearer pulse above 30 Hz.';
+    $('beat').min=drone?'0':'0.5';$('beat-min').textContent=drone?'0 Hz':'0.5 Hz';
+    $('beat').disabled=drone;$('beat-number').disabled=drone;
+    $('beat-control-label').textContent=state.mode==='isochronic'?'Pulse rate':drone?'Beat · off':'Beat offset';
+    $('beat-help').textContent=drone?'Pure tone keeps the beat at zero. Choose another mode to add a beat.':state.mode==='binaural'?'Binaural beats are limited to 40 Hz; use another mode up to 100 Hz.':'Beat rate up to 100 Hz. Try isochronic for a clearer pulse above 30 Hz.';
+    if(state.sequence==='aura')$('beat-help').textContent='Starts at 7.83 Hz, then changes to 10 Hz halfway through. Editing the tones switches to a single custom sound.';
+    $$('[data-beat]').forEach(el=>el.disabled=drone);
     assign('carrier',state.carrier);assign('carrier-number',state.carrier.toFixed(1));
     assign('beat',state.beat);assign('beat-number',state.beat.toFixed(2));
     assign('volume',state.volume);assign('volume-number',Math.round(state.volume*100));
@@ -146,15 +191,22 @@
     assign('minutes',state.minutes||'Off');assign('settle',state.settle);assign('fade',state.fade);
     assign('pulse',state.pulse);assign('pulse-number',state.pulse);assign('pulse-depth',state.pulseDepth);
     $('pulse-on').checked=state.pulseOn;$('accent').checked=state.accent;$('chord').checked=state.chord;$('center-beat').checked=state.align==='center';
+    $('pulse-on').disabled=drone;$('chord').disabled=drone;
     $('center-beat').disabled=state.mode!=='binaural';
     $('align-help').textContent=state.align==='center'?'Equal distance from the carrier':'Carrier in left ear, offset in right';
     ['pulse','pulse-number','pulse-depth','accent'].forEach(id=>$(id).disabled=!state.pulseOn);
     const autoTempo=state.tempo==='golden';
-    $('tempo-note').textContent=autoTempo?'Golden Lift: 80 BPM to settle, 115 in Core, then back to 80. Editing tempo sets a steady pulse.':'A slow swell, separate from the beat offset.';
+    $('tempo-note').textContent=drone?'Pure tone plays one steady sine. Choose another mode for a pulse or chord.':autoTempo?'Golden Lift: 80 BPM to settle, 115 in Core, then back to 80. Editing tempo sets a steady pulse.':'A slow swell, separate from the beat offset.';
     $('pulse-depth-value').textContent=Math.round(state.pulseDepth*100)+'%';
     $('wake-lock').checked=prefs.wakeLock;$('reduce-motion').checked=prefs.reduceMotion||mediaReduce.matches;
+    $('breathing-on').checked=state.breathing==='4-6';
     $$('[data-preset]').forEach(el=>{const selected=!!active&&active.slug===el.dataset.preset;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',String(selected));});
-    $$('[data-minutes]').forEach(el=>{const yes=Number(el.dataset.minutes)===state.minutes;el.classList.toggle('selected',yes);el.setAttribute('aria-pressed',String(yes));});
+    $('preset-select').value=active&&S.BUILT_INS[active.slug]?active.slug:'';
+    $('preset-select').options[0].textContent=active&&!active.builtIn?active.name:'Custom sound';
+    $('preset-purpose').textContent=active?.purpose|| (active?'Saved on this device':'Your own mix');
+    $('preset-description').textContent=active?.description|| (state.sequence==='aura'?'A two-part session with a gentle change at the midpoint.':'Shape the pitch, beat, and background to suit your moment.');
+    $('preset-guidance').textContent=active?.guidance|| (state.mode==='binaural'?'Use headphones. Keep the volume comfortable.':state.mode==='drone'?'A steady tone in both channels. Keep the volume comfortable.':'Headphones or speakers. Keep the volume comfortable.');
+    $$('[data-minutes]').forEach(el=>{const yes=Number(el.dataset.minutes)===state.minutes;el.classList.toggle('selected',yes);el.setAttribute('aria-pressed',String(yes));el.disabled=el.dataset.minutes==='0'&&state.sequence==='aura';});
     $$('[data-beat]').forEach(el=>el.setAttribute('aria-pressed',String(Math.abs(Number(el.dataset.beat)-state.beat)<.009)));
     $('settle-readout').textContent=shortTime(p.settle);$('core-readout').textContent=shortTime(p.core);$('fade-readout').textContent=shortTime(p.fade);
     ['settle','core','fade'].forEach(phase=>document.querySelector('.phase-'+phase).style.width=(p.total?p[phase]/p.total*100:phase==='core'?100:0)+'%');
@@ -164,14 +216,33 @@
     renderUserPresets();renderTransport();
     let readout=state.mode==='monaural'?'Both '+freq.left.toFixed(1)+' + '+freq.right.toFixed(1)+' Hz':'Left '+freq.left.toFixed(1)+' Hz · Right '+freq.right.toFixed(1)+' Hz';
     if(state.mode==='isochronic') readout+=' · pulse '+state.beat.toFixed(2)+' Hz';
-    announce(readout+'. '+band.name+' · '+state.beat.toFixed(2)+' Hz.');
+    announce(readout+'. '+(drone?'Pure tone. No beat.':band.name+' · '+displayedBeat.toFixed(2)+' Hz.'));
+  }
+  function renderGuides() {
+    const breathing=state.breathing==='4-6';$('breathing-guide').hidden=!breathing;
+    if(breathing){
+      const following=live.playing&&!live.stopping;
+      const within=Math.max(0,live.elapsed||0)%10,inhale=within<4;
+      const phase=following?(inhale?'Breathe in':'Breathe out'):'In 4 · out 6';
+      const count=following?(Math.floor(inhale?within:within-4)+1)+' / '+(inhale?4:6):'Ready';
+      if($('breath-phase').textContent!==phase)$('breath-phase').textContent=phase;
+      if($('breath-count').textContent!==count)$('breath-count').textContent=count;
+      $('breathing-guide').classList.toggle('exhale',following&&!inhale);
+      $('breathing-guide').style.setProperty('--breath-scale',following?String(.72+.28*(inhale?within/4:1-(within-4)/6)):'.72');
+    }
+    const seq=live.playing?live.sequence==='aura':state.sequence==='aura';$('sequence-guide').hidden=!seq;
+    if(seq){
+      const view=live.playing?live:S.sequenceAt(state,0);
+      $('sequence-stage').textContent=(view.stageIndex||1)+' / 2 · '+(view.stageName||view.stage||'Ground');
+      $('sequence-next').textContent=live.playing?(view.stageIndex===2?'Finish in ':'Lift in ')+formatTime(view.stageRemaining):'Lift begins at '+formatTime(state.minutes*30);
+    }
   }
   function renderTransport() {
     const isPlaying=live.playing, isStopping=live.stopping;
     document.body.classList.toggle('playing',isPlaying);
     const interrupted=isPlaying && live.contextState!=='running' && !isStopping;
     ['start','mobile-start'].forEach(id=>{
-      const button=$(id);button.disabled=isStopping||starting||audioUnavailable;
+      const button=$(id);button.disabled=isStopping||starting||loadingPreset||audioUnavailable;
       button.setAttribute('aria-pressed',String(isPlaying));
       const word=starting?'Starting…':isStopping?'Fading out…':interrupted?'Resume':isPlaying?'Stop':'Start';
       button.setAttribute('aria-label',interrupted?'Resume generator':isPlaying?'Stop generator':'Start generator');
@@ -179,6 +250,8 @@
       button.querySelector('use').setAttribute('href',isPlaying&&!interrupted?'#i-stop':'#i-play');
     });
     $('open-export').disabled=isPlaying||starting||isStopping;
+    $('preset-select').disabled=starting||isStopping||loadingPreset;
+    $$('[data-preset],[data-user-preset]').forEach(el=>el.disabled=starting||isStopping||loadingPreset);
     $('open-export').title=isPlaying?'Stop playback before exporting your session.':'Export this session as a stereo WAV';
     const timed=isPlaying?live.duration>0:state.minutes>0;
     const remaining=isPlaying?(timed?live.remaining:live.elapsed):state.minutes*60;
@@ -187,8 +260,9 @@
     $('phase-label').textContent=isStopping?'A gentle finish':interrupted?'Tap Resume to keep listening':isPlaying?(timed?live.phase+' · '+shortTime(live.phaseRemaining):'Untimed · stay as long as you like'):state.minutes?'minutes for yourself':'untimed · stop whenever you like';
     $('play-state').textContent=isStopping?'Finishing':interrupted?'Audio paused':isPlaying?'Listening':'Ready to listen';
     $('mobile-status').textContent=isPlaying?(live.phase||'Listening'):displayName();
+    renderGuides();
   }
-  function onAudioState(snapshot){live=snapshot;renderTransport();if(live.playing&&Number.isFinite(live.left)&&Number.isFinite(live.right)){[['left-frequency',live.left],['right-frequency',live.right]].forEach(([id,hz])=>{$(id).firstChild.textContent=hz.toFixed(1)+' ';});}if(!live.playing&&!live.stopping){releaseWakeLock();} }
+  function onAudioState(snapshot){live=snapshot;renderTransport();if(live.playing&&Number.isFinite(live.left)&&Number.isFinite(live.right)){[['left-frequency',live.left],['right-frequency',live.right]].forEach(([id,hz])=>{$(id).firstChild.textContent=hz.toFixed(1)+' ';});if(live.sequence==='aura'&&Number.isFinite(live.activeBeat))$('band-label').textContent=S.band(live.activeBeat).name+' · '+live.activeBeat.toFixed(2)+' Hz';}if(!live.playing&&!live.stopping){releaseWakeLock();} }
   function onAudioError(message,code){$('audio-error').textContent=message;$('audio-error').hidden=false;toast(message,true);if(code==='E001'){audioUnavailable=true;['start','mobile-start'].forEach(id=>$(id).disabled=true);} }
   function onSessionEnd(){releaseWakeLock();persist();$('next-session-hint').hidden=true;toast('Session ended. Take your time.');announce('Session ended.',true);render();}
   async function requestWakeLock(){
@@ -220,7 +294,7 @@
     function commit(){
       if(!dirty){el.value=options.format?options.format(state[key]):String(state[key]);return;}
       dirty=false;
-      const text=el.value.trim();let n=Number(text);
+      const text=el.value.trim();let n=options.duration&&text.toLowerCase()==='off'?0:Number(text);
       if(!text||!Number.isFinite(n)){el.value=options.format?options.format(state[key]):String(state[key]);return;}
       if(options.transform)n=options.transform(n);
       if(options.min!==undefined)n=Math.max(options.min,n);
@@ -233,7 +307,7 @@
     el.addEventListener('blur',commit);
     el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){dirty=false;el.value=options.format?options.format(state[key]):String(state[key]);el.blur();}});
   }
-  function changeDuration(minutes){setState(S.withDuration(state,Math.max(1,Math.min(90,minutes)),{preserveCustom:phasesEdited}),{notifyTiming:true});}
+  function changeDuration(minutes){setState(S.withDuration(state,Math.max(0,Math.min(90,minutes)),{preserveCustom:phasesEdited}),{notifyTiming:true});}
   async function copyLink(){
     writeURL();try{await navigator.clipboard.writeText(canonicalURL());toast('Link copied');}catch(_){toast('Could not copy. Select the address bar instead.',true);}
   }
@@ -275,7 +349,9 @@
     downloadBlob(new Blob([html],{type:'text/html;charset=utf-8'}),'current-offline.html');toast('Offline copy downloaded');
   }
 
+  initBuiltInPresets();
   $('start').addEventListener('click',togglePlayback);$('mobile-start').addEventListener('click',togglePlayback);
+  $('preset-select').addEventListener('change',()=>loadPreset($('preset-select').value));
   $('test-left').addEventListener('click',()=>testChannel('left'));$('test-right').addEventListener('click',()=>testChannel('right'));
   $('copy-link').addEventListener('click',copyLink);$('download-app').addEventListener('click',downloadApp);
   $$('[data-mode]').forEach(el=>el.addEventListener('click',()=>setState({mode:el.dataset.mode})));
@@ -285,7 +361,7 @@
   [['carrier','carrier'],['beat','beat'],['volume','volume'],['pulse','pulse'],['pulse-depth','pulseDepth']].forEach(([id,key])=>$(id).addEventListener('input',()=>setState(key==='pulse'?{pulse:Number($(id).value),tempo:'steady'}:{[key]:Number($(id).value)})));
   bindNumeric('carrier-number','carrier',{format:n=>n.toFixed(1)});bindNumeric('beat-number','beat',{format:n=>n.toFixed(2)});
   bindNumeric('volume-number','volume',{transform:n=>n/100,format:n=>String(Math.round(n*100))});
-  bindNumeric('minutes','minutes',{duration:true,min:1,max:90,format:n=>n?String(n):'Off'});
+  bindNumeric('minutes','minutes',{duration:true,min:0,max:90,format:n=>n?String(n):'Off'});
   bindNumeric('pulse-number','pulse');bindNumeric('settle','settle');bindNumeric('fade','fade');
   [['pulse-on','pulseOn'],['accent','accent'],['chord','chord']].forEach(([id,key])=>$(id).addEventListener('change',()=>setState({[key]:$(id).checked})));
   $('center-beat').addEventListener('change',()=>setState({align:$('center-beat').checked?'center':'right'}));
@@ -294,6 +370,7 @@
     $('gain-'+n).addEventListener('input',()=>setState({noiseGain:Object.assign({},state.noiseGain,{[n]:Number($('gain-'+n).value)})}));
   });
   $('wake-lock').addEventListener('change',()=>{prefs.wakeLock=$('wake-lock').checked;if(prefs.wakeLock)requestWakeLock();else releaseWakeLock();persist();});
+  $('breathing-on').addEventListener('change',()=>setState({breathing:$('breathing-on').checked?'4-6':'none'}));
   $('reduce-motion').addEventListener('change',()=>{prefs.reduceMotion=$('reduce-motion').checked;persist();render();});
   mediaReduce.addEventListener('change',()=>render());
   $('dismiss-safety').addEventListener('click',()=>{storage.dismissedSafety=true;persist();render();});
@@ -316,9 +393,9 @@
     if((e.key===' '||e.key==='Enter')&&focusedButton)return;
     const key=e.key.toLowerCase();let handled=true;
     if(key===' '){togglePlayback();}
-    else if(key==='arrowup'||key==='arrowdown'){const step=e.altKey?.1:e.shiftKey?10:1;setState({carrier:state.carrier+(key==='arrowup'?step:-step)});}
-    else if(key==='arrowright'||key==='arrowleft'){const step=e.altKey?.01:e.shiftKey?1:.1;setState({beat:state.beat+(key==='arrowright'?step:-step)});}
-    else if(key==='m'){const modes=['binaural','isochronic','monaural'];setState({mode:modes[(modes.indexOf(state.mode)+1)%3]});}
+    else if(key==='arrowup'||key==='arrowdown'){const step=e.altKey?.1:e.shiftKey?10:1;setState({carrier:activeToneSettings().carrier+(key==='arrowup'?step:-step)});}
+    else if(key==='arrowright'||key==='arrowleft'){if(state.mode!=='drone'){const step=e.altKey?.01:e.shiftKey?1:.1;setState({beat:activeToneSettings().beat+(key==='arrowright'?step:-step)});}}
+    else if(key==='m'){const modes=['binaural','isochronic','monaural','drone'];setState({mode:modes[(modes.indexOf(state.mode)+1)%modes.length]});}
     else if(key==='p')setState({pulseOn:!state.pulseOn});
     else if(key==='['||key===',')setState({volume:state.volume-.05});
     else if(key===']'||key==='.')setState({volume:state.volume+.05});
